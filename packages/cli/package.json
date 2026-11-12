@@ -28,5 +28,9 @@
     "@dz-sandbox/mock-chargily": "0.1.0",
     "@dz-sandbox/mock-satim": "0.1.0",
     "@dz-sandbox/mock-yalidine": "0.1.0"
+  },
+  "devDependencies": {
+    "@chargily/chargily-pay": "^2.1.0",
+    "@dz-sandbox/client": "0.1.0"
   }
 }
