@@ -44,7 +44,7 @@ const RegisterSchema = z.object({
   failUrl: SafeHttpUrlSchema.optional(),
   description: z.string().optional().default(''),
   language: z.enum(['ar', 'fr', 'en']).optional().default('ar'),
-  jsonParams: z.union([z.string(), z.record(z.unknown())]).optional(),
+  jsonParams: z.union([z.string(), z.record(z.string(), z.unknown())]).optional(),
 });
 
 const OrderLookupSchema = z.object({

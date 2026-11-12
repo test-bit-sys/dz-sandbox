@@ -22,10 +22,10 @@ export const ScenarioBehaviorSchema = z.object({
   dropSocket: z.boolean().optional(),
   errorCode: z.union([z.string(), z.number()]).optional(),
   errorMessage: z.string().optional(),
-  headers: z.record(z.string()).optional(),
+  headers: z.record(z.string(), z.string()).optional(),
   webhook: WebhookBehaviorSchema.optional(),
   sequence: z.array(z.string().min(1)).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type ScenarioBehavior = z.infer<typeof ScenarioBehaviorSchema>;

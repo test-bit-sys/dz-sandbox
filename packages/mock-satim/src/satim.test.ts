@@ -17,7 +17,7 @@ const FixtureSchema = z.object({
       name: z.string(),
       method: z.enum(['GET', 'POST']),
       path: z.string(),
-      body: z.record(z.unknown()).optional(),
+      body: z.record(z.string(), z.unknown()).optional(),
       expectedStatus: z.number().int(),
       requiredKeys: z.array(z.string()),
     }),

@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+- **Upgraded Zod to v4 (`^4.6.7`):** Upgraded `zod` from `v3.24.2` to `v4.6.7` across all 7 consuming workspace packages (`core`, `control`, `mock-chargily`, `mock-satim`, `mock-yalidine`, `mock-zrexpress`, `mock-maystro`). Resolves high-severity advisory `GHSA-mrhx-c7xc-m3w5` with `npm audit --omit=dev` reporting 0 vulnerabilities. Updated `z.record(T)` calls to the required 2-argument signature `z.record(z.string(), T)`.
+
 ### Added
 - **Security Hardening & Threat Model:** `docs/THREAT_MODEL.md`, SSRF/private-range webhook target protection, open-redirect neutralization, CRLF header-injection blocking, path-traversal guards on scenario/file loaders, log redaction (`Authorization`, API keys, tokens, card-like digits), optional Control API bearer authentication beyond loopback, and `fast-check` state-machine & scenario-precedence fuzz tests.
 - **Record & Replay Mode:** `dz-sandbox record`, `dz-sandbox replay`, and `dz-sandbox fixtures validate` backed by `@dz-sandbox/core` (`packages/core/src/recorder.ts`), automatic redaction, and explicit `--no-redact --confirm-unredacted` guardrails.

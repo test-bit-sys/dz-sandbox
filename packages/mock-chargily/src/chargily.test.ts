@@ -21,7 +21,7 @@ const FixtureFileSchema = z.object({
       name: z.string(),
       method: z.enum(['GET', 'POST', 'PATCH', 'DELETE']),
       path: z.string(),
-      headers: z.record(z.string()).default({}),
+      headers: z.record(z.string(), z.string()).default({}),
       body: z.unknown().optional(),
       expectedStatus: z.number().int(),
       requiredKeys: z.array(z.string()),

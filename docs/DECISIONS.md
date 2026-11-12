@@ -2,10 +2,10 @@
 
 This document records the key architectural choices and design rationale for `dz-sandbox`.
 
-## D-01: Pre-existing `zod <4.6.6` npm audit finding (`GHSA-mrhx-c7xc-m3w5`)
-- **Decision:** Keep `zod@^3.24.2` for v0.1.0, document `GHSA-mrhx-c7xc-m3w5` and dev-only `vitest@3`/`tinypool` advisories in `docs/THREAT_MODEL.md`, and mitigate oversized-collection DoS by enforcing strict Fastify `bodyLimit` + bounded Zod schema limits before validation runs.
-- **Alternatives:** `npm audit fix --force` would jump to `zod@4.6.7` and `vitest@5.1.0` (breaking major upgrades across packages).
-- **Why:** Prevents breaking APIs and schemas mid-hardening while directly bounding payload sizes at the HTTP ingress layer.
+## D-01: Upgrading `zod` to v4 (`^4.6.7`) resolving `GHSA-mrhx-c7xc-m3w5`
+- **Decision:** Upgraded `zod` from `^3.24.2` to `^4.6.7` across all 7 workspace packages (`@dz-sandbox/core`, `@dz-sandbox/control`, `@dz-sandbox/mock-chargily`, `@dz-sandbox/mock-satim`, `@dz-sandbox/mock-yalidine`, `@dz-sandbox/mock-zrexpress`, `@dz-sandbox/mock-maystro`). This fully resolves high-severity advisory `GHSA-mrhx-c7xc-m3w5` and results in `npm audit --omit=dev` reporting **0 vulnerabilities**.
+- **Implementation:** Updated all `z.record(valueType)` calls to Zod 4's required 2-argument signature `z.record(z.string(), valueType)`. All other schemas (`z.object`, `z.string().min().max().email()`, `z.number()`, `z.enum()`, `z.union()`, `z.literal()`, `z.array()`, `z.boolean()`, `z.infer`, `error.flatten()`, `safeParse()`, `.refine()`) worked seamlessly with identical validation shapes and zero test breakages.
+- **Why:** Delivers a zero-production-vulnerability release without sacrificing backward compatibility of public error response shapes or weakening test suites. Defense-in-depth measures (explicit Fastify `bodyLimit` and bounded arrays) remain fully enforced.
 
 ## D-02: Control API bearer token & host exposure defaults
 - **Decision:** Keep all mock servers and Control API bound to `127.0.0.1` by default (`resolveBindHost()`). If `DZ_SANDBOX_HOST` is non-loopback (`0.0.0.0`, LAN IP) or `DZ_CONTROL_TOKEN` is set, enforce `Authorization: Bearer <DZ_CONTROL_TOKEN>` on mutating/sensitive `/__control/*` routes (leaving `/__control/health` unauthenticated for Docker/K8s probes; dashboard UI prompts/stores token in memory/sessionStorage only when server requires it). If `DZ_SANDBOX_HOST` is non-loopback without `DZ_CONTROL_TOKEN`, refuse mutating control calls (or refuse boot unless `DZ_ALLOW_UNAUTH_CONTROL=true`) with a clear diagnostic message.

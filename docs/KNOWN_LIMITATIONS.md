@@ -17,4 +17,5 @@ To contribute real sanitized captures, see [docs/CAPTURE_GUIDE.md](./CAPTURE_GUI
 - Supported runtime is Node.js `>=20.0.0`. On Node versions where `node:sqlite` is unavailable, the core store falls back to `better-sqlite3` or in-memory mode (`DZ_STORE=memory`).
 
 ## 4. Upstream Dependency Audit Notes
-- `zod@^3.24.2` has an upstream advisory (`GHSA-mrhx-c7xc-m3w5`) concerning collection parsing. `dz-sandbox` mitigates this at the HTTP layer via strict Fastify `bodyLimit` (256 KB) and bounded Zod schemas (e.g. `items.max(100)`). A migration to `zod@4` is planned for a future major release.
+- Production dependencies are clean: `npm audit --omit=dev` reports **0 vulnerabilities** following the upgrade to `zod@^4.6.7` (resolving `GHSA-mrhx-c7xc-m3w5`).
+- Remaining dev-only audit findings are confined to test and build tooling (`vitest@3` -> `tinypool <=2.1.1`), which do not ship in published packages or production container images.

@@ -76,9 +76,8 @@ jobs:
           "
 
       - name: Dependency vulnerability check
-        # Informational until zod@4 / vitest@5 major upgrades are scheduled:
-        # - runtime: zod <4.6.6 (GHSA-mrhx-c7xc-m3w5)
-        # - devDependencies: vitest@3 -> tinypool <=2.1.1
+        # Runtime dependencies audited with 0 vulnerabilities (zod upgraded to 4.6.7).
+        # continue-on-error: true retained due to devDependencies: vitest@3 -> tinypool <=2.1.1
         continue-on-error: true
         run: |
           npm audit --omit=dev --audit-level=high

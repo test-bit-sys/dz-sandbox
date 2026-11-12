@@ -32,7 +32,7 @@ Follow these steps before tagging and publishing a release (`vX.Y.Z`):
 - [ ] **Configure Branch Protection on `main`:** Go to `Settings -> Branches` and add a rule for `main` requiring pull request reviews, passing CI status checks (`verify`, `docker-smoke`), and disallowing force pushes.
 
 ## 4. Manual Publishing Steps
-- [ ] **Resolve or accept `npm audit` advisory on `zod@3`:** `npm audit --omit=dev --audit-level=high` reports `GHSA-mrhx-c7xc-m3w5` (`zod <4.6.6`); decide whether to stay on `zod@^3.24.2` for v0.1.0 or plan a breaking `zod@4` upgrade for v0.2.0 (see `docs/DECISIONS.md`).
+- [x] **Resolved `npm audit` advisory on `zod`:** upgraded all workspace packages to `zod@^4.6.7` (resolving `GHSA-mrhx-c7xc-m3w5`); `npm audit --omit=dev --audit-level=high` reports **0 vulnerabilities** (see `docs/DECISIONS.md`).
 - [ ] **Run Docker Compose smoke check on a machine/CI with Docker:** verify `docker compose up --build` and `.github/workflows/ci.yml` `docker-smoke` job pass cleanly on Linux.
 - [ ] **Capture real provider fixtures (optional, recommended before v0.2.0):** follow [docs/CAPTURE_GUIDE.md](./CAPTURE_GUIDE.md) + `node scripts/redact-fixture.mjs` to add real redacted sandbox fixtures for Chargily, SATIM, and Yalidine.
 - [ ] **Record demo visual:** follow [docs/DEMO_SCRIPT.md](./DEMO_SCRIPT.md) to capture `docs/assets/demo.gif` and uncomment the README placeholder.

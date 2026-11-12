@@ -73,9 +73,10 @@ const ImportBundleSchema = z.object({
   exportedAt: z.string(),
   clockMs: z.number(),
   seed: z.number(),
-  defaults: z.record(z.string()),
-  resourceScenarios: z.record(z.record(z.string())),
+  defaults: z.record(z.string(), z.string()),
+  resourceScenarios: z.record(z.string(), z.record(z.string(), z.string())),
   sequenceScenarios: z.record(
+    z.string(),
     z.object({
       steps: z.array(z.string()).max(100),
       index: z.number().int().nonnegative(),
@@ -83,7 +84,7 @@ const ImportBundleSchema = z.object({
     }),
   ),
   customScenarios: z.array(ScenarioDefinitionSchema).max(200),
-  resources: z.record(z.record(z.unknown())),
+  resources: z.record(z.string(), z.record(z.string(), z.unknown())),
 });
 
 export function createControlServer(deps: ControlServerDeps): FastifyInstance {

@@ -51,7 +51,7 @@ const CreateCustomerSchema = z.object({
   email: z.string().email().optional(),
   phone: z.string().min(3).optional(),
   address: AddressSchema.optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 const UpdateCustomerSchema = z.object({
@@ -59,32 +59,32 @@ const UpdateCustomerSchema = z.object({
   email: z.string().email().optional(),
   phone: z.string().min(3).optional(),
   address: AddressSchema.partial().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 const CreateProductSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   images: z.array(z.string()).max(8).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 const UpdateProductSchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().optional(),
   images: z.array(z.string()).max(8).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 const CreatePriceSchema = z.object({
   amount: z.number().positive(),
   currency: z.string().min(3).max(3).transform((c) => c.toLowerCase()),
   product_id: z.string().min(1),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 const UpdatePriceSchema = z.object({
-  metadata: z.record(z.unknown()),
+  metadata: z.record(z.string(), z.unknown()),
 });
 
 const SafeHttpUrlSchema = z
@@ -112,7 +112,7 @@ const CreateCheckoutSchema = z
     customer_id: z.string().optional(),
     shipping_address: AddressSchema.optional(),
     collect_shipping_address: z.boolean().optional().default(false),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
   })
   .refine(
     (data) => Boolean(data.items?.length) || (data.amount !== undefined && Boolean(data.currency)),
@@ -132,7 +132,7 @@ const CreatePaymentLinkSchema = z.object({
   locale: z.enum(['ar', 'en', 'fr']).optional().default('ar'),
   pass_fees_to_customer: z.boolean().optional().default(false),
   collect_shipping_address: z.boolean().optional().default(false),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 const UpdatePaymentLinkSchema = CreatePaymentLinkSchema.partial();

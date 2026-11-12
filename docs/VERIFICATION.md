@@ -21,7 +21,7 @@ This document records **real verification runs** performed for `v0.1.0`, separat
 | Package tarball dry-run | `npm pack --workspaces --dry-run` | Verified all 7 publishable tarballs ship only `LICENSE`, `dist/*`, and `package.json` with zero `.ts` or test leaks | PASSED |
 | Geo dataset validation/import | `node scripts/import-geo.mjs` | Validated 69 wilayas (`era: 48\|58\|69`) and 1,541 communes from user-supplied `algeria-geo` into `packages/mock-yalidine/src/algeria-geo.generated.ts`, excluding ODbL coordinates | PASSED |
 | CLI diagnostics (`doctor`) | `node packages/cli/dist/cli.js doctor` + `cli.test.ts` | Reports Node version, free/running port status, `.env` snippet, and handles missing Docker CLI cleanly (`dockerVersion: null`, exit 0 when Node >= 20) | PASSED |
-| Dependency audit (`npm audit`) | `npm audit --omit=dev --audit-level=high` | **Exits 1:** `zod <4.6.6` (`GHSA-mrhx-c7xc-m3w5`, high; fix requires breaking major `zod@4.6.7`). Full audit also flags dev-only `vitest@3` -> `tinypool <=2.1.1`. Marked `continue-on-error: true` in `.github/workflows/ci.yml` | KNOWN ISSUE |
+| Dependency audit (`npm audit`) | `npm audit --omit=dev --audit-level=high` | **Exit 0:** `found 0 vulnerabilities` (production dependencies clean after upgrading `zod` to `v4.6.7`, resolving `GHSA-mrhx-c7xc-m3w5`). Full audit flags only dev-only `vitest@3` -> `tinypool <=2.1.1` | PASSED |
 
 ---
 
@@ -185,6 +185,133 @@ Validated 5 fixture file(s) in fixtures (captured: 0, seed: 5)
 Note on `npm ci` & `npm audit`:
 - `npm ci --offline --no-audit --no-fund --dry-run` exited 0 (`added 34 packages in 7s`); existing offline `node_modules` was preserved because `better-sqlite3`'s install script requires network access if `prebuild-install` needs downloading binaries without local C++ build tools.
 - `npm audit --omit=dev --audit-level=high --offline` returns exit 0 (`found 0 vulnerabilities`) only because `--offline` skips online registry advisory lookup; online `npm audit` on `zod@^3.24.2` still flags `GHSA-mrhx-c7xc-m3w5` (`zod <4.6.6`, documented in `DECISIONS.md` `D-01` and mitigated via Fastify `bodyLimit` + bounded Zod schemas).
+
+### STEP 9: Zod v4 Upgrade (`chore/zod-4`, resolves `GHSA-mrhx-c7xc-m3w5`)
+
+All workspace packages consuming `zod` (`core`, `control`, `mock-chargily`, `mock-satim`, `mock-yalidine`, `mock-zrexpress`, `mock-maystro`) upgraded to `zod@^4.6.7`.
+
+#### 1. Clean `npm ci --offline`
+Command: `npm ci --offline`
+```text
+added 372 packages, and audited 385 packages in 2m
+124 packages are looking for funding
+  run `npm fund` for details
+found 0 vulnerabilities
+```
+
+#### 2. Workspace Build (`npm run build`)
+Command: `npm run build`
+```text
+> @dz-sandbox/core@0.1.0 build
+DTS ⚡️ Build success in 2941ms (dist\index.d.ts 25.54 KB)
+> @dz-sandbox/control@0.1.0 build
+DTS ⚡️ Build success in 2459ms (dist\index.d.ts 6.99 KB)
+> @dz-sandbox/mock-chargily@0.1.0 build
+DTS ⚡️ Build success in 2391ms (dist\index.d.ts 4.64 KB)
+> @dz-sandbox/mock-satim@0.1.0 build
+DTS ⚡️ Build success in 5690ms (dist\index.d.ts 4.15 KB)
+> @dz-sandbox/mock-yalidine@0.1.0 build
+DTS ⚡️ Build success in 4404ms (dist\index.d.ts 6.29 KB)
+> @dz-sandbox/mock-zrexpress@0.1.0 build
+DTS ⚡️ Build success in 2830ms (dist\index.d.ts 892.00 B)
+> @dz-sandbox/mock-maystro@0.1.0 build
+DTS ⚡️ Build success in 2843ms (dist\index.d.ts 871.00 B)
+> @dz-sandbox/client@0.1.0 build
+DTS ⚡️ Build success in 2316ms (dist\index.d.ts 2.66 KB)
+> dz-sandbox@0.1.0 build
+DTS ⚡️ Build success in 3999ms (dist\index.d.ts 1.66 KB)
+```
+
+#### 3. Strict Typecheck (`npm run typecheck`)
+Command: `npm run typecheck`
+```text
+> @dz-sandbox/core@0.1.0 typecheck > tsc --noEmit
+> @dz-sandbox/control@0.1.0 typecheck > tsc --noEmit
+> @dz-sandbox/mock-chargily@0.1.0 typecheck > tsc --noEmit
+> @dz-sandbox/mock-satim@0.1.0 typecheck > tsc --noEmit
+> @dz-sandbox/mock-yalidine@0.1.0 typecheck > tsc --noEmit
+> @dz-sandbox/mock-zrexpress@0.1.0 typecheck > tsc --noEmit
+> @dz-sandbox/mock-maystro@0.1.0 typecheck > tsc --noEmit
+> @dz-sandbox/client@0.1.0 typecheck > tsc --noEmit
+> dz-sandbox@0.1.0 typecheck > tsc --noEmit
+```
+
+#### 4. Lint (`npm run lint`)
+Command: `npm run lint`
+```text
+> dz-sandbox-monorepo@0.1.0 lint
+> eslint "packages/*/src/**/*.ts"
+```
+(Exit 0, 0 errors, 0 warnings)
+
+#### 5. Test Coverage (`npm run test:coverage`)
+Command: `npm run test:coverage`
+```text
+ Test Files  13 passed (13)
+      Tests  49 passed (49)
+   Duration  28.18s
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   95.58 |    85.33 |   95.25 |   95.58 |                   
+ control/src       |   92.94 |    73.68 |     100 |   92.94 |                   
+ core/src          |   96.53 |    86.41 |   97.56 |   96.53 |                   
+ mock-chargily/src |   99.76 |    88.33 |     100 |   99.76 |                   
+ mock-maystro/src  |     100 |      100 |     100 |     100 |                   
+ mock-satim/src    |   98.04 |    87.61 |     100 |   98.04 |                   
+ mock-yalidine/src |   99.72 |    90.38 |   96.96 |   99.72 |                   
+ ...-zrexpress/src |     100 |      100 |     100 |     100 |                   
+-------------------|---------|----------|---------|---------|-------------------
+```
+
+#### 6. Python Client Test (`npm run test:python`)
+Command: `npm run test:python`
+```text
+test_reset_scenario_and_wait_for_webhook (test_client.TestPythonClient.test_reset_scenario_and_wait_for_webhook) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.211s
+
+OK
+```
+
+#### 7. Runnable Examples Smoke (`npm run examples:smoke`)
+Command: `npm run examples:smoke`
+```text
+=== Running example smoke: examples/express-checkout ===
+express-checkout demo OK: naive=2 fulfillments (bug caught), idempotent=1 (fixed), satim=1
+
+=== Running example smoke: examples/nextjs-cod-store ===
+nextjs-cod-store demo OK: happy path 201, phone_rejected->422, rate_limited->503
+
+=== Running example smoke: examples/test-with-vitest ===
+ ✓ checkout.test.ts (1 test) 86ms
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+
+All 3 examples passed smoke verification!
+```
+
+#### 8. Docs Generation & Internal Link Audit (`npm run docs:build` & `npm run test:docs`)
+Command: `npm run docs:build && npm run test:docs`
+```text
+> dz-sandbox-monorepo@0.1.0 docs:build
+> node scripts/build-docs-site.mjs
+Built 38 HTML docs pages into dist-docs/
+
+> dz-sandbox-monorepo@0.1.0 test:docs
+> node scripts/build-docs-site.mjs --verify
+{"docsSite":"OK","pagesBuilt":38,"internalLinksVerified":390,"searchEntries":37,"externalAssetRequests":0,"defaultLocale":"ar-rtl"}
+```
+
+#### 9. Production Dependency Audit (`npm audit --omit=dev`)
+Command: `npm audit --omit=dev`
+```text
+found 0 vulnerabilities
+```
+Result: 0 high/critical vulnerabilities in production dependencies. `GHSA-mrhx-c7xc-m3w5` is completely resolved.
 
 ---
 

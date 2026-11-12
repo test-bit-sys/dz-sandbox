@@ -39,13 +39,13 @@ export const CapturedExchangeSchema = z.object({
   request: z.object({
     method: z.string().min(1),
     path: z.string().min(1),
-    query: z.record(z.unknown()).default({}),
-    headers: z.record(z.string()).default({}),
+    query: z.record(z.string(), z.unknown()).default({}),
+    headers: z.record(z.string(), z.string()).default({}),
     body: z.unknown().optional(),
   }),
   response: z.object({
     status: z.number().int().min(100).max(599),
-    headers: z.record(z.string()).default({}),
+    headers: z.record(z.string(), z.string()).default({}),
     body: z.unknown().optional(),
   }),
 });
@@ -56,7 +56,7 @@ const SeedFixtureSchema = z.object({
   provider: z.string().min(1),
   verified: z.boolean(),
   source: z.string(),
-  cases: z.array(z.record(z.unknown())),
+  cases: z.array(z.record(z.string(), z.unknown())),
 });
 
 const SECRET_KEY_RE =
