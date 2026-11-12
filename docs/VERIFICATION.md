@@ -1,0 +1,33 @@
+# Verification Ledger (`dz-sandbox` v0.1.0)
+
+This document records **real verification runs** performed for `v0.1.0`, separating checks executed directly from checks that remain **NOT RUN** locally (and why).
+
+> **Principle:** Only checks actually executed against the current codebase with captured outputs are marked as **PASSED**. Anything unexecuted locally or deferred to CI/live sandboxes is marked **NOT RUN**.
+
+---
+
+## 1. Local Verified Checks (Node `v26.7.0`, Windows host)
+
+| Check | Command | Scope & Key Observed Result | Status |
+| --- | --- | --- | --- |
+| Workspace build | `npm run build` | Builds all 7 TypeScript packages (`core`, `control`, `mock-chargily`, `mock-satim`, `mock-yalidine`, `client`, `dz-sandbox`) with ESM + `.d.ts` output via `tsup` | PASSED |
+| Strict typecheck | `npm run typecheck` | Zero `tsc --noEmit` errors across all 7 workspace packages | PASSED |
+| Linter | `npm run lint` | `eslint "packages/*/src/**/*.ts"` passes with 0 errors/warnings | PASSED |
+| Unit + integration coverage | `npm run test:coverage` | Vitest suite passes (`>=85%` statements/branches/functions/lines enforced in `vitest.config.ts` on `core`, `mock-chargily`, `mock-satim`, `mock-yalidine`) | PASSED |
+| Official Chargily SDK fidelity | `npx vitest run packages/cli/src/cli.test.ts packages/cli/src/chargily-fidelity.test.ts` | Official `@chargily/chargily-pay@2.1.0` `ChargilyClient` pointed via `pointChargilyClientToSandbox()` creates customer, product, price, checkout, completes hosted payment, and validates webhook with official `verifySignature() === true` | PASSED |
+| Python stdlib client tests | `npm run test:python` | Zero-dependency Python 3 client verified (`unittest`) against live control API | PASSED |
+| Runnable examples smoke check | `npm run examples:smoke` | Starts sandbox and runs `express-checkout` (naive duplicate bug = 2 vs idempotent = 1 + SATIM flow), `nextjs-cod-store` (route handler transpiled offline via `typescript`), and `test-with-vitest` | PASSED |
+| Geo dataset validation/import | `node scripts/import-geo.mjs` | Validated 69 wilayas (`era: 48\|58\|69`) and 1,541 communes from user-supplied `algeria-geo` into `packages/mock-yalidine/src/algeria-geo.generated.ts`, excluding ODbL coordinates | PASSED |
+| CLI diagnostics (`doctor`) | `node packages/cli/dist/cli.js doctor` + `cli.test.ts` | Reports Node version, free/running port status, `.env` snippet, and handles missing Docker CLI cleanly (`dockerVersion: null`, exit 0 when Node >= 20) | PASSED |
+| Dependency audit (`npm audit`) | `npm audit --omit=dev --audit-level=high` | **Exits 1:** `zod <4.6.6` (`GHSA-mrhx-c7xc-m3w5`, high; fix requires breaking major `zod@4.6.7`). Full audit also flags dev-only `vitest@3` -> `tinypool <=2.1.1`. Marked `continue-on-error: true` in `.github/workflows/ci.yml` | KNOWN ISSUE |
+
+---
+
+## 2. Checks Marked `NOT RUN` Locally (and Why)
+
+| Check | Reason Not Run Locally | Mitigation / Where Tested |
+| --- | --- | --- |
+| `docker compose up --build` | Docker Desktop / `docker` CLI is not installed on the local Windows build machine | Static audit of `Dockerfile` (copies all `packages/*` AND `examples/*` workspace `package.json` files before `npm ci`) and `docker-compose.yml` (`127.0.0.1` host port binding); automated in `.github/workflows/ci.yml` `docker-smoke` job on `ubuntu-latest` |
+| Node 20 runtime without `node:sqlite` | Local host runs Node `v26.7.0` | `packages/core/src/core.test.ts` tests the SQLite fallback path when `node:sqlite` is unavailable; `.github/workflows/ci.yml` runs `verify` matrix on `[20, 22]` |
+| Full `next build` on `examples/nextjs-cod-store` | Installing `next@^15` separately hit TLS failure (`ERR_SSL_CIPHER_OPERATION_FAILED`) offline, so `next` is declared as an optional `peerDependency` | `examples/nextjs-cod-store/demo.mjs` transpiles `app/api/orders/cod/route.ts` with `typescript` offline and asserts `created_ok -> 201`, `phone_rejected -> 422`, `rate_limited -> 503` |
+| Live provider sandbox contract verification (Chargily test mode, SATIM bank PDF, Yalidine API v1) | No live merchant keys, bank documentation PDF, or internet sandbox credentials are bundled or committed | All unverified endpoints/fields remain tagged `Unverified` or `Partial` in [docs/SPEC_STATUS.md](./SPEC_STATUS.md); contributors can capture sanitized fixtures via [docs/CAPTURE_GUIDE.md](./docs/CAPTURE_GUIDE.md) and `scripts/redact-fixture.mjs` |

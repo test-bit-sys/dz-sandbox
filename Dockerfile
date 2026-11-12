@@ -10,6 +10,9 @@ COPY packages/mock-satim/package.json packages/mock-satim/
 COPY packages/mock-yalidine/package.json packages/mock-yalidine/
 COPY packages/client/package.json packages/client/
 COPY packages/cli/package.json packages/cli/
+COPY examples/express-checkout/package.json examples/express-checkout/
+COPY examples/nextjs-cod-store/package.json examples/nextjs-cod-store/
+COPY examples/test-with-vitest/package.json examples/test-with-vitest/
 
 RUN npm ci --ignore-scripts
 
@@ -48,6 +51,9 @@ COPY --from=builder /app/packages/client/package.json packages/client/
 COPY --from=builder /app/packages/client/dist packages/client/dist
 COPY --from=builder /app/packages/cli/package.json packages/cli/
 COPY --from=builder /app/packages/cli/dist packages/cli/dist
+COPY --from=builder /app/examples/express-checkout/package.json examples/express-checkout/
+COPY --from=builder /app/examples/nextjs-cod-store/package.json examples/nextjs-cod-store/
+COPY --from=builder /app/examples/test-with-vitest/package.json examples/test-with-vitest/
 
 RUN npm ci --omit=dev --omit=optional --ignore-scripts && npm cache clean --force
 

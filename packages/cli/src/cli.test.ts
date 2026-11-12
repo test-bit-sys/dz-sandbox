@@ -81,5 +81,20 @@ describe('dz-sandbox CLI & runtime', () => {
     expect(doc.nodeOk).toBe(true);
     expect(doc.ports.every((p) => p.status === 'sandbox_running')).toBe(true);
     expect(doc.envSnippet).toContain('CHARGILY_BASE_URL=');
+
+    // Missing Docker CLI should be reported cleanly as null rather than throwing
+    const docNoDocker = await runDoctor(
+      {
+        DZ_CONTROL_PORT: String(runtime.ports.control),
+        DZ_CHARGILY_PORT: String(runtime.ports.chargily),
+        DZ_SATIM_PORT: String(runtime.ports.satim),
+        DZ_YALIDINE_PORT: String(runtime.ports.yalidine),
+      },
+      () => {
+        throw new Error('spawn docker ENOENT');
+      },
+    );
+    expect(docNoDocker.dockerVersion).toBeNull();
+    expect(docNoDocker.nodeOk).toBe(true);
   });
 });

@@ -6,10 +6,10 @@ services:
     image: dz-sandbox:local
     container_name: dz-sandbox
     ports:
-      - "${DZ_CONTROL_PORT:-4000}:4000"
-      - "${DZ_CHARGILY_PORT:-4001}:4001"
-      - "${DZ_SATIM_PORT:-4002}:4002"
-      - "${DZ_YALIDINE_PORT:-4003}:4003"
+      - "${DZ_HOST_BIND:-127.0.0.1}:${DZ_CONTROL_PORT:-4000}:4000"
+      - "${DZ_HOST_BIND:-127.0.0.1}:${DZ_CHARGILY_PORT:-4001}:4001"
+      - "${DZ_HOST_BIND:-127.0.0.1}:${DZ_SATIM_PORT:-4002}:4002"
+      - "${DZ_HOST_BIND:-127.0.0.1}:${DZ_YALIDINE_PORT:-4003}:4003"
     environment:
       DZ_SANDBOX_HOST: "0.0.0.0"
       DZ_STORE: "${DZ_STORE:-memory}"

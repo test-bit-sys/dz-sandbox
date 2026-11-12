@@ -40,15 +40,18 @@ async function isSandboxHealth(port: number): Promise<boolean> {
   }
 }
 
-export async function runDoctor(env: NodeJS.ProcessEnv = process.env): Promise<DoctorReport> {
+export type ExecCommandFn = (command: string) => Buffer | string;
+
+export async function runDoctor(
+  env: NodeJS.ProcessEnv = process.env,
+  execCmd: ExecCommandFn = (cmd) => execSync(cmd, { stdio: ['ignore', 'pipe', 'ignore'] }),
+): Promise<DoctorReport> {
   const major = Number.parseInt(process.versions.node.split('.')[0] ?? '0', 10);
   const nodeOk = major >= 20;
 
   let dockerVersion: string | null = null;
   try {
-    dockerVersion = execSync('docker --version', { stdio: ['ignore', 'pipe', 'ignore'] })
-      .toString('utf8')
-      .trim();
+    dockerVersion = execCmd('docker --version').toString('utf8').trim();
   } catch {
     dockerVersion = null;
   }
