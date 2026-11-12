@@ -189,4 +189,80 @@ describe('Control API', () => {
 
     await app.close();
   });
+
+  it('enforces Control API bearer token, remote loopback guard, prototype-safe locales, and OpenAPI host sanitization', async () => {
+    const store = new MemoryStore();
+    const clock = new VirtualClock();
+    const rng = new SeededRNG(1337);
+    const scenarios = new ScenarioEngine(store);
+    const webhooks = new WebhookDispatcher(store, clock, rng);
+
+    const authApp = createControlServer({
+      store,
+      clock,
+      rng,
+      scenarios,
+      webhooks,
+      controlToken: 'secret-ctrl-token',
+    });
+
+    expect((await authApp.inject({ method: 'GET', url: '/__control/health' })).statusCode).toBe(200);
+    expect((await authApp.inject({ method: 'GET', url: '/__control/state' })).statusCode).toBe(401);
+    expect(
+      (
+        await authApp.inject({
+          method: 'GET',
+          url: '/__control/state',
+          headers: { authorization: 'Bearer wrong' },
+        })
+      ).statusCode,
+    ).toBe(401);
+    expect(
+      (
+        await authApp.inject({
+          method: 'GET',
+          url: '/__control/state',
+          headers: { authorization: 'Bearer secret-ctrl-token' },
+        })
+      ).statusCode,
+    ).toBe(200);
+    expect((await authApp.inject({ method: 'GET', url: '/locales/toString.json' })).statusCode).toBe(404);
+    const specRes = await authApp.inject({
+      method: 'GET',
+      url: '/__control/openapi.json',
+      headers: { authorization: 'Bearer secret-ctrl-token', host: 'evil.com\r\nX: y' },
+    });
+    expect(specRes.statusCode).toBe(200);
+    expect(specRes.json().servers[0].url).toBe('http://127.0.0.1:4000');
+
+    expect(
+      (
+        await authApp.inject({
+          method: 'POST',
+          url: '/__control/trigger/chargily/checkout.paid',
+          headers: { authorization: 'Bearer secret-ctrl-token' },
+          payload: { targetUrl: 'javascript:alert(1)' },
+        })
+      ).statusCode,
+    ).toBe(400);
+
+    await authApp.close();
+
+    // Non-loopback caller without token must be rejected with 403 unless allowUnauthenticatedRemote
+    const remoteGuardApp = createControlServer({
+      store,
+      clock,
+      rng,
+      scenarios,
+      webhooks,
+    });
+    const remoteRes = await remoteGuardApp.inject({
+      method: 'GET',
+      url: '/__control/state',
+      remoteAddress: '192.168.1.55',
+    });
+    expect(remoteRes.statusCode).toBe(403);
+    expect((await remoteGuardApp.inject({ method: 'GET', url: '/__control/health', remoteAddress: '192.168.1.55' })).statusCode).toBe(200);
+    await remoteGuardApp.close();
+  });
 });

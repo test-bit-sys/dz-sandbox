@@ -1,0 +1,22 @@
+# Architecture & Engineering Decisions (`phase2/hardening-and-recorder`)
+
+Unattended assumptions and engineering choices are logged here with alternatives considered and rationale.
+
+## D-01: Pre-existing `zod <4.6.6` npm audit finding (`GHSA-mrhx-c7xc-m3w5`)
+- **Decision:** Keep `zod@^3.24.2` during `phase2/hardening-and-recorder`, document `GHSA-mrhx-c7xc-m3w5` and dev-only `vitest@3`/`tinypool` advisories honestly in `docs/VERIFICATION.md` and `docs/THREAT_MODEL.md`, and mitigate oversized-collection DoS by enforcing strict Fastify `bodyLimit` + bounded Zod schema limits before validation runs.
+- **Alternatives:** `npm audit fix --force` would jump to `zod@4.6.7` and `vitest@5.1.0` (breaking major upgrades across 7 packages offline).
+- **Why:** Prevents breaking APIs/schemas mid-hardening while directly bounding payload sizes at the HTTP layer.
+
+## D-02: Control API bearer token & host exposure defaults
+- **Decision:** Keep all mock servers and Control API bound to `127.0.0.1` by default (`resolveBindHost()`). If `DZ_SANDBOX_HOST` is non-loopback (`0.0.0.0`, LAN IP) or `DZ_CONTROL_TOKEN` is set, enforce `Authorization: Bearer <DZ_CONTROL_TOKEN>` on mutating/sensitive `/__control/*` routes (leaving `/__control/health` unauthenticated for Docker/K8s probes; dashboard UI prompts/stores token in memory/sessionStorage only when server requires it). If `DZ_SANDBOX_HOST` is non-loopback without `DZ_CONTROL_TOKEN`, refuse mutating control calls (or refuse boot unless `DZ_ALLOW_UNAUTH_CONTROL=true`) with a clear diagnostic message.
+- **Alternatives:** Generating a random token on every boot (breaks unattended scripts and Docker Compose defaults unless printed/configured) vs leaving non-loopback control completely unauthenticated (risks SSRF/RCE-by-webhook if exposed on LAN).
+- **Why:** Zero friction on `127.0.0.1` local dev, fail-closed protection if someone exposes ports on `0.0.0.0` (Docker Compose sets `DZ_CONTROL_TOKEN` or `DZ_ALLOW_UNAUTH_CONTROL` explicitly if LAN-bound, wait — Compose container binds `127.0.0.1:<port>:4000` on host so inside container `DZ_SANDBOX_HOST=0.0.0.0` still needs Docker healthcheck or safe default!).
+  - *Important refinement:* In `docker-compose.yml`, container needs `DZ_SANDBOX_HOST=0.0.0.0` for Docker port-forwarding while host binds `127.0.0.1:4000`. Wait: if `DZ_CONTROL_TOKEN` is unset AND host is `0.0.0.0`, mutating `/__control/*` from non-loopback caller or without token should be guarded cleanly! Let's check exact implementation: require `DZ_CONTROL_TOKEN` whenever `DZ_CONTROL_TOKEN` is configured OR reject remote (non-loopback) client IPs on `/__control/*` unless `DZ_CONTROL_TOKEN` matches or `DZ_ALLOW_REMOTE_CONTROL=true`. That way `127.0.0.1` AND Docker Desktop port-forward (`127.0.0.1` / loopback) work out of the box without breaking Compose, AND any LAN attacker hitting `0.0.0.0:4000` from outside localhost is blocked unless authenticated with `DZ_CONTROL_TOKEN`!
+
+## D-03: Webhook SSRF allowlist & localhost dev ergonomics
+- **Decision:** Restrict outbound webhook URLs in `WebhookDispatcher` using `validateWebhookUrl()`:
+  - Require `http:` or `https:` scheme only (reject `file:`, `ftp:`, `gopher:`, `javascript:`, etc.).
+  - Reject embedded credentials (`user:pass@host`).
+  - Block private, link-local, metadata (`169.254.169.254`), and loopback IPs/hostnames (`localhost`, `127.0.0.0/8`, `::1`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `fc00::/7`, `fe80::/10`, `0.0.0.0`) **except**:
+    - Allowlist hosts configured in `DZ_WEBHOOK_ALLOWLIST` (comma-separated hosts/URLs), OR
+    - Loopback targets (`127.0.0.1`, `::1`, `localhost`) ONLY when `DZ_ALLOW_LOCALHOST_WEBHOOKS` is `'true'` (default `'true'` in local sandbox dev so existing `127.0.0.1` integration tests/examples work out of the box, and `'false'` explicitly blocks even loopback!). Let's re-read STEP 1 carefully: "webhook targets restricted by allowlist with private-range protection unless explicitly allowed for localhost development". Wait: let's check what existing tests pass to `webhooks.dispatch` / `webhook_url`! If tests run on `127.0.0.1` WITHOUT setting an env var, wait — let's inspect `packages/core/src/webhooks.ts`, `packages/core/src/http.ts`, `packages/core/src/scenarios.ts`, `packages/control/src/server.ts`, and `packages/mock-chargily/src/server.ts` first so we don't accidentally break existing tests OR violate STEP 1's rule!

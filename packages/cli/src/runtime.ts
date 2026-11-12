@@ -2,6 +2,7 @@ import path from 'node:path';
 import type { FastifyInstance } from 'fastify';
 import {
   createStoreFromEnv,
+  isLoopbackHostOrIp,
   resolveBindHost,
   ScenarioEngine,
   SeededRNG,
@@ -68,6 +69,11 @@ export async function startSandboxRuntime(
   options: SandboxRuntimeOptions = {},
 ): Promise<SandboxRuntime> {
   const host = resolveBindHost(options.host);
+  if (!isLoopbackHostOrIp(host) && !process.env.DZ_CONTROL_TOKEN?.trim()) {
+    console.warn(
+      `[dz-sandbox] WARNING: Binding to non-loopback host "${host}" without DZ_CONTROL_TOKEN. Remote callers to /__control/* will be rejected with 403 unless DZ_CONTROL_TOKEN is configured.`,
+    );
+  }
   const store = options.store ?? createStoreFromEnv(process.env);
   const clock = new VirtualClock();
   const rng = new SeededRNG(options.seed ?? parsePort(process.env.DZ_SEED, 1337));

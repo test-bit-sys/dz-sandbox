@@ -1,7 +1,7 @@
-import { existsSync, readdirSync, readFileSync, watch, type FSWatcher } from 'node:fs';
-import path from 'node:path';
+import { existsSync, readdirSync, readFileSync, statSync, watch, type FSWatcher } from 'node:fs';
 import YAML from 'yaml';
 import { z } from 'zod';
+import { resolvePathInsideDir } from './security.js';
 import type { SandboxStore } from './store.js';
 import {
   ScenarioDefinitionSchema,
@@ -437,12 +437,20 @@ export class ScenarioEngine {
       return [];
     }
     const loaded: ScenarioDefinition[] = [];
-    const files = readdirSync(dirPath).filter((f) => /\.(ya?ml|json)$/i.test(f));
+    const entries = readdirSync(dirPath, { withFileTypes: true }).filter((d) =>
+      /\.(ya?ml|json)$/i.test(d.name),
+    );
 
-    for (const file of files) {
-      const fullPath = path.join(dirPath, file);
+    for (const entry of entries) {
+      const fullPath = resolvePathInsideDir(dirPath, entry.name);
+      const st = statSync(fullPath);
+      if (st.size > 512 * 1024) {
+        throw new Error(`Scenario file exceeds 512 KiB size limit: ${entry.name}`);
+      }
       const raw = readFileSync(fullPath, 'utf8');
-      const parsedRaw = file.endsWith('.json') ? (JSON.parse(raw) as unknown) : (YAML.parse(raw) as unknown);
+      const parsedRaw = entry.name.endsWith('.json')
+        ? (JSON.parse(raw) as unknown)
+        : (YAML.parse(raw) as unknown);
       const validated = ScenarioFileSchema.parse(parsedRaw);
       const list = Array.isArray(validated)
         ? validated

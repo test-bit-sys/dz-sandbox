@@ -500,6 +500,43 @@ describe('mock-chargily failure & webhook scenarios', () => {
     expect((await app.inject({ method: 'POST', url: `/api/v2/checkouts/${chkArId}/expire`, headers })).statusCode).toBe(422);
     expect((await app.inject({ method: 'POST', url: `/pay/chargily/${chkArId}/action`, payload: { action: 'success' } })).statusCode).toBe(422);
 
+    // Security regressions: unsafe URL protocols, embedded creds, and oversized request body rejected
+    expect(
+      (
+        await app.inject({
+          method: 'POST',
+          url: '/api/v2/checkouts',
+          headers,
+          payload: { amount: 1500, currency: 'dzd', success_url: 'javascript:alert(1)' },
+        })
+      ).statusCode,
+    ).toBe(422);
+    expect(
+      (
+        await app.inject({
+          method: 'POST',
+          url: '/api/v2/checkouts',
+          headers,
+          payload: { amount: 1500, currency: 'dzd', success_url: 'https://user:pass@127.0.0.1/ok' },
+        })
+      ).statusCode,
+    ).toBe(422);
+    expect(
+      (
+        await app.inject({
+          method: 'POST',
+          url: '/api/v2/checkouts',
+          headers: { ...headers, 'content-type': 'application/json' },
+          payload: JSON.stringify({
+            amount: 1500,
+            currency: 'dzd',
+            success_url: 'http://127.0.0.1/ok',
+            description: 'x'.repeat(300 * 1024),
+          }),
+        })
+      ).statusCode,
+    ).toBe(413);
+
     await app.close();
   });
 });

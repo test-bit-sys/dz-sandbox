@@ -384,4 +384,41 @@ describe('SATIM state machine property tests', () => {
       }),
     );
   });
+
+  it('rejects non-http(s) returnUrl/failUrl and enforces strict bodyLimit', async () => {
+    const store = new MemoryStore();
+    const clock = new VirtualClock();
+    const rng = new SeededRNG(1);
+    const scenarios = new ScenarioEngine(store);
+    const app = createSatimServer({ ctx: { store, clock, rng, scenarios } });
+
+    const badUrl = await app.inject({
+      method: 'POST',
+      url: '/payment/rest/register.do',
+      payload: {
+        userName: 'merch',
+        password: 'pwd',
+        orderNumber: 'ORD-XSS',
+        amount: 1000,
+        returnUrl: 'javascript:alert(1)',
+      },
+    });
+    expect(badUrl.statusCode).toBe(400);
+
+    const tooBig = await app.inject({
+      method: 'POST',
+      url: '/payment/rest/register.do',
+      headers: { 'content-type': 'application/json' },
+      payload: JSON.stringify({
+        userName: 'merch',
+        password: 'pwd',
+        orderNumber: 'ORD-BIG',
+        amount: 1000,
+        returnUrl: 'http://127.0.0.1/ok',
+        description: 'z'.repeat(300 * 1024),
+      }),
+    });
+    expect(tooBig.statusCode).toBe(413);
+    await app.close();
+  });
 });

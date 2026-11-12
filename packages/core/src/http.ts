@@ -1,8 +1,9 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { VirtualClock } from './clock.js';
-import { redactBody, redactHeaders } from './redact.js';
+import { redactBody, redactHeaders, redactQuery, redactUrlPath } from './redact.js';
 import type { SeededRNG } from './rng.js';
 import type { ResolvedScenario, ScenarioEngine } from './scenarios.js';
+import { sanitizeHeaderEntry } from './security.js';
 import type { SandboxStore } from './store.js';
 
 export interface SandboxContext {
@@ -46,6 +47,14 @@ export async function applyNetworkScenario(
 
   if (behavior.headers) {
     for (const [k, v] of Object.entries(behavior.headers)) {
+      const check = sanitizeHeaderEntry(k, String(v));
+      if (!check.safe) {
+        reply.code(500).send({
+          error: 'INVALID_SCENARIO_HEADER',
+          message: check.reason ?? 'Unsafe scenario response header rejected',
+        });
+        return true;
+      }
       reply.header(k, v);
     }
   }
@@ -55,9 +64,9 @@ export async function applyNetworkScenario(
       id: ctx.rng.id('req'),
       provider,
       method: request.method,
-      path: request.url,
+      path: redactUrlPath(request.url),
       headers: redactHeaders(request.headers),
-      query: (request.query as Record<string, unknown>) ?? {},
+      query: redactQuery(request.query),
       body: redactBody(request.body),
       statusCode: 0,
       responseBody: { error: 'SOCKET_DROPPED' },
@@ -129,9 +138,9 @@ export function registerRequestAuditHook(
       id: ctx.rng.id('req'),
       provider,
       method: request.method,
-      path: request.url,
+      path: redactUrlPath(request.url),
       headers: redactHeaders(request.headers),
-      query: (request.query as Record<string, unknown>) ?? {},
+      query: redactQuery(request.query),
       body: redactBody(request.body),
       statusCode: reply.statusCode,
       responseBody: redactBody(parsedResponse),

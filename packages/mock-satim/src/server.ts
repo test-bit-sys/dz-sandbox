@@ -4,7 +4,10 @@ import { z } from 'zod';
 import {
   applyNetworkScenario,
   getScenarioHeader,
+  isSafeHttpUrl,
   registerRequestAuditHook,
+  sanitizeHostHeader,
+  sanitizeRedirectUrl,
   type SandboxContext,
 } from '@dz-sandbox/core';
 import { renderSatimHostedPage } from './hosted-page.js';
@@ -26,14 +29,19 @@ const NS = {
   orderNumbers: 'satim:order_numbers',
 } as const;
 
+const SafeHttpUrlSchema = z
+  .string()
+  .max(2048)
+  .refine(isSafeHttpUrl, { message: 'URL must use http(s) without embedded credentials' });
+
 const RegisterSchema = z.object({
   userName: z.string().min(1),
   password: z.string().min(1),
   orderNumber: z.string().min(1),
   amount: z.coerce.number().int().positive(),
   currency: z.string().default(SATIM_SPEC.currencyDzd),
-  returnUrl: z.string().url(),
-  failUrl: z.string().url().optional(),
+  returnUrl: SafeHttpUrlSchema,
+  failUrl: SafeHttpUrlSchema.optional(),
   description: z.string().optional().default(''),
   language: z.enum(['ar', 'fr', 'en']).optional().default('ar'),
   jsonParams: z.union([z.string(), z.record(z.unknown())]).optional(),
@@ -76,13 +84,16 @@ function parseJsonParams(raw: string | Record<string, unknown> | undefined): Rec
 
 export function createSatimServer(deps: SatimServerDeps): FastifyInstance {
   const { ctx } = deps;
-  const app = Fastify({ logger: false, bodyLimit: 1024 * 1024 });
+  const app = Fastify({ logger: false, bodyLimit: 256 * 1024 });
   app.register(formbody);
   registerRequestAuditHook(app, ctx, 'satim');
 
   const baseUrlFromRequest = (request: FastifyRequest): string => {
     if (deps.publicBaseUrl) return deps.publicBaseUrl.replace(/\/$/, '');
-    const host = request.headers.host ?? `127.0.0.1:${process.env.DZ_SATIM_PORT ?? '4002'}`;
+    const host = sanitizeHostHeader(
+      request.headers.host,
+      `127.0.0.1:${process.env.DZ_SATIM_PORT ?? '4002'}`,
+    );
     return `http://${host}`;
   };
 
@@ -336,7 +347,11 @@ export function createSatimServer(deps: SatimServerDeps): FastifyInstance {
       ctx.store.setResource(NS.orders, updated.orderId, updated);
 
       const targetBase = updated.state === 'PAID' ? updated.returnUrl : updated.failUrl;
-      const redirectUrl = new URL(targetBase);
+      const sanitizedBase = sanitizeRedirectUrl(targetBase);
+      if (!sanitizedBase) {
+        return reply.code(400).send({ errorCode: SATIM_SPEC.errorCodes.missingParameter, errorMessage: 'Unsafe redirect URL' });
+      }
+      const redirectUrl = new URL(sanitizedBase);
       redirectUrl.searchParams.set('orderId', updated.orderId);
 
       if ((request.headers.accept ?? '').includes('application/json')) {

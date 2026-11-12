@@ -4,7 +4,10 @@ import { z } from 'zod';
 import {
   applyNetworkScenario,
   getScenarioHeader,
+  isSafeHttpUrl,
   registerRequestAuditHook,
+  sanitizeHostHeader,
+  sanitizeRedirectUrl,
   type SandboxContext,
   type WebhookDispatcher,
 } from '@dz-sandbox/core';
@@ -84,6 +87,11 @@ const UpdatePriceSchema = z.object({
   metadata: z.record(z.unknown()),
 });
 
+const SafeHttpUrlSchema = z
+  .string()
+  .max(2048)
+  .refine(isSafeHttpUrl, { message: 'URL must use http(s) without embedded credentials' });
+
 const CheckoutItemSchema = z.object({
   price: z.string().min(1),
   quantity: z.number().int().positive(),
@@ -91,13 +99,13 @@ const CheckoutItemSchema = z.object({
 
 const CreateCheckoutSchema = z
   .object({
-    items: z.array(CheckoutItemSchema).min(1).optional(),
+    items: z.array(CheckoutItemSchema).min(1).max(100).optional(),
     amount: z.number().positive().optional(),
     currency: z.string().min(3).max(3).transform((c) => c.toLowerCase()).optional(),
     payment_method: z.enum(['edahabia', 'cib']).optional().default('edahabia'),
-    success_url: z.string().url(),
-    failure_url: z.string().url().optional(),
-    webhook_endpoint: z.string().url().optional(),
+    success_url: SafeHttpUrlSchema,
+    failure_url: SafeHttpUrlSchema.optional(),
+    webhook_endpoint: SafeHttpUrlSchema.optional(),
     description: z.string().optional(),
     locale: z.enum(['ar', 'en', 'fr']).optional().default('ar'),
     pass_fees_to_customer: z.boolean().optional().default(false),
@@ -171,13 +179,16 @@ function publicPaymentLinkView(link: ChargilyPaymentLink): Omit<ChargilyPaymentL
 
 export function createChargilyServer(deps: ChargilyServerDeps): FastifyInstance {
   const { ctx, webhooks } = deps;
-  const app = Fastify({ logger: false, bodyLimit: 1024 * 1024 });
+  const app = Fastify({ logger: false, bodyLimit: 256 * 1024 });
   app.register(formbody);
   registerRequestAuditHook(app, ctx, 'chargily');
 
   const baseUrlFromRequest = (request: FastifyRequest): string => {
     if (deps.publicBaseUrl) return deps.publicBaseUrl.replace(/\/$/, '');
-    const host = request.headers.host ?? `127.0.0.1:${process.env.DZ_CHARGILY_PORT ?? '4001'}`;
+    const host = sanitizeHostHeader(
+      request.headers.host,
+      `127.0.0.1:${process.env.DZ_CHARGILY_PORT ?? '4001'}`,
+    );
     return `http://${host}`;
   };
 
@@ -363,10 +374,14 @@ export function createChargilyServer(deps: ChargilyServerDeps): FastifyInstance 
         }
 
         const acceptsJson = (request.headers.accept ?? '').includes('application/json');
-        const redirectTarget =
+        const rawRedirect =
           result.checkout.status === 'paid'
             ? result.checkout.success_url
             : result.checkout.failure_url || result.checkout.success_url;
+        const redirectTarget = sanitizeRedirectUrl(rawRedirect);
+        if (!redirectTarget) {
+          return reply.code(400).send({ error: 'UNSAFE_REDIRECT_URL' });
+        }
 
         if (acceptsJson) {
           return {

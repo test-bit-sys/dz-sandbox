@@ -2,7 +2,11 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import {
   DEFAULT_INITIAL_CLOCK_MS,
+  isLoopbackHostOrIp,
+  isSafeHttpUrl,
+  sanitizeHostHeader,
   ScenarioDefinitionSchema,
+  timingSafeEqualToken,
   type SandboxBundle,
   type SandboxStateSnapshot,
   type SandboxStore,
@@ -28,31 +32,38 @@ export interface ControlServerDeps {
   rng: SeededRNG;
   scenarios: ScenarioEngine;
   webhooks: WebhookDispatcher;
+  controlToken?: string;
+  allowUnauthenticatedRemote?: boolean;
   onTrigger?: TriggerHandler;
   onReset?: () => void;
   dashboardHtml?: () => string;
   serviceHealth?: () => Record<string, { status: string; port?: number }>;
 }
 
+const SafeHttpUrlSchema = z
+  .string()
+  .max(2048)
+  .refine(isSafeHttpUrl, { message: 'URL must use http(s) without embedded credentials' });
+
 const SetProviderScenarioSchema = z.object({
-  scenario: z.string().min(1).optional(),
-  sequence: z.array(z.string().min(1)).min(1).optional(),
+  scenario: z.string().min(1).max(120).optional(),
+  sequence: z.array(z.string().min(1).max(120)).min(1).max(100).optional(),
   loop: z.boolean().optional(),
 });
 
 const SetResourceScenarioSchema = z.object({
-  scenario: z.string().min(1),
+  scenario: z.string().min(1).max(120),
 });
 
 const AdvanceClockSchema = z.object({
-  duration: z.union([z.number().nonnegative(), z.string().min(1)]),
+  duration: z.union([z.number().nonnegative(), z.string().min(1).max(32)]),
 });
 
 const TriggerBodySchema = z
   .object({
-    targetUrl: z.string().url().optional(),
-    resourceId: z.string().optional(),
-    secret: z.string().optional(),
+    targetUrl: SafeHttpUrlSchema.optional(),
+    resourceId: z.string().max(128).optional(),
+    secret: z.string().max(512).optional(),
     payload: z.unknown().optional(),
   })
   .optional();
@@ -66,19 +77,51 @@ const ImportBundleSchema = z.object({
   resourceScenarios: z.record(z.record(z.string())),
   sequenceScenarios: z.record(
     z.object({
-      steps: z.array(z.string()),
+      steps: z.array(z.string()).max(100),
       index: z.number().int().nonnegative(),
       loop: z.boolean().optional(),
     }),
   ),
-  customScenarios: z.array(ScenarioDefinitionSchema),
+  customScenarios: z.array(ScenarioDefinitionSchema).max(200),
   resources: z.record(z.record(z.unknown())),
 });
 
 export function createControlServer(deps: ControlServerDeps): FastifyInstance {
   const app = Fastify({
     logger: false,
-    bodyLimit: 2 * 1024 * 1024,
+    bodyLimit: 1024 * 1024,
+  });
+
+  const configuredToken = deps.controlToken ?? process.env.DZ_CONTROL_TOKEN?.trim() ?? '';
+  const allowUnauthRemote =
+    deps.allowUnauthenticatedRemote ?? (process.env.DZ_ALLOW_UNAUTH_CONTROL === 'true');
+
+  app.addHook('onRequest', async (request, reply) => {
+    const pathname = request.url.split('?')[0] ?? request.url;
+    if (pathname === '/health' || pathname === '/__control/health') {
+      return;
+    }
+    if (!pathname.startsWith('/__control')) {
+      return;
+    }
+    if (configuredToken) {
+      const authHeader = request.headers.authorization;
+      const match = authHeader ? /^Bearer\s+(.+)$/i.exec(authHeader.trim()) : null;
+      const candidate = match?.[1]?.trim() ?? '';
+      if (!candidate || !timingSafeEqualToken(configuredToken, candidate)) {
+        return reply.code(401).send({
+          error: 'UNAUTHORIZED',
+          message: 'Control API requires Authorization: Bearer <DZ_CONTROL_TOKEN>',
+        });
+      }
+      return;
+    }
+    if (!allowUnauthRemote && !isLoopbackHostOrIp(request.ip)) {
+      return reply.code(403).send({
+        error: 'CONTROL_AUTH_REQUIRED',
+        message: 'Non-loopback control API access requires DZ_CONTROL_TOKEN or DZ_ALLOW_UNAUTH_CONTROL=true',
+      });
+    }
   });
 
   app.get('/health', async () => ({ status: 'ok', service: 'control' }));
@@ -90,7 +133,7 @@ export function createControlServer(deps: ControlServerDeps): FastifyInstance {
   }));
 
   app.get('/__control/openapi.json', async (request) => {
-    const host = request.headers.host ?? '127.0.0.1:4000';
+    const host = sanitizeHostHeader(request.headers.host, '127.0.0.1:4000');
     return buildControlOpenApiSpec(`http://${host}`);
   });
 
@@ -104,11 +147,10 @@ export function createControlServer(deps: ControlServerDeps): FastifyInstance {
 
   app.get<{ Params: { lang: string } }>('/locales/:lang.json', async (request, reply) => {
     const key = request.params.lang as DashboardLang;
-    const loc = DASHBOARD_LOCALES[key];
-    if (!loc) {
+    if (!Object.hasOwn(DASHBOARD_LOCALES, key)) {
       return reply.code(404).send({ error: 'LOCALE_NOT_FOUND' });
     }
-    return loc;
+    return DASHBOARD_LOCALES[key];
   });
 
   app.get('/__control/state', async (): Promise<SandboxStateSnapshot & { pendingTimersList: unknown[] }> => {

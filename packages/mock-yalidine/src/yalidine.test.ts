@@ -416,4 +416,100 @@ describe('mock-yalidine lifecycle simulator & delivery scenarios', () => {
       cwd: path.resolve(__dirname, '../../..'),
     });
   });
+
+  it('property: parcel lifecycle scheduling, deletion gating, and seeded replay remain consistent', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 1, max: 10_000 }),
+        fc.constantFrom('created_ok', 'lifecycle_fast', 'returned_to_sender', 'delivery_failed_retry', 'status_stuck'),
+        fc.boolean(),
+        async (seed, scenario, deleteEarly) => {
+          const runSim = async () => {
+            const store = new MemoryStore();
+            const clock = new VirtualClock();
+            const rng = new SeededRNG(seed);
+            const scenarios = new ScenarioEngine(store);
+            const ctx = { store, clock, rng, scenarios };
+            scenarios.setDefault('yalidine', scenario);
+            const app = createYalidineServer({ ctx });
+
+            const created = await app.inject({
+              method: 'POST',
+              url: '/v1/parcels',
+              headers: { 'x-api-id': 'id', 'x-api-token': 'tok' },
+              payload: {
+                order_id: 'ORD-FUZZ',
+                from_wilaya_id: 16,
+                to_wilaya_id: 16,
+                commune_name: 'Hydra',
+                firstname: 'Ali',
+                familyname: 'Boudiaf',
+                contact_phone: '0550112233',
+                address: 'Rue 1',
+                product_list: 'Item',
+                price: 1200,
+              },
+            });
+            expect(created.statusCode).toBe(201);
+            const tracking = created.json().data[0].tracking as string;
+
+            if (deleteEarly) {
+              const del = await app.inject({
+                method: 'DELETE',
+                url: `/v1/parcels/${tracking}`,
+                headers: { 'x-api-id': 'id', 'x-api-token': 'tok' },
+              });
+              expect(del.statusCode).toBe(200);
+            }
+
+            await clock.advance('24h');
+            const parcel = await app.inject({
+              method: 'GET',
+              url: `/v1/parcels/${tracking}`,
+              headers: { 'x-api-id': 'id', 'x-api-token': 'tok' },
+            });
+            await app.close();
+
+            if (deleteEarly) {
+              expect(parcel.statusCode).toBe(404);
+              return { tracking, finalStatus: 'DELETED' };
+            }
+            return { tracking, finalStatus: parcel.json().status as string };
+          };
+
+          const first = await runSim();
+          const second = await runSim();
+          expect(first).toEqual(second);
+        },
+      ),
+      { numRuns: 15 },
+    );
+
+    // Unsafe webhook_url scheme rejected
+    const store = new MemoryStore();
+    const clock = new VirtualClock();
+    const rng = new SeededRNG(1);
+    const scenarios = new ScenarioEngine(store);
+    const app = createYalidineServer({ ctx: { store, clock, rng, scenarios } });
+    const badHook = await app.inject({
+      method: 'POST',
+      url: '/v1/parcels',
+      headers: { 'x-api-id': 'id', 'x-api-token': 'tok' },
+      payload: {
+        order_id: 'ORD-BADHOOK',
+        from_wilaya_id: 16,
+        to_wilaya_id: 16,
+        commune_name: 'Hydra',
+        firstname: 'Ali',
+        familyname: 'Boudiaf',
+        contact_phone: '0550112233',
+        address: 'Rue 1',
+        product_list: 'Item',
+        price: 1200,
+        webhook_url: 'javascript:alert(1)',
+      },
+    });
+    expect(badHook.statusCode).toBe(422);
+    await app.close();
+  });
 });

@@ -235,7 +235,18 @@ export function renderDashboardHtml(): string {
     }
 
     async function api(path, opts) {
-      const res = await fetch(path, opts);
+      const token = sessionStorage.getItem('dz_control_token');
+      const headers = { ...(opts && opts.headers ? opts.headers : {}) };
+      if (token) headers.Authorization = 'Bearer ' + token;
+      let res = await fetch(path, { ...(opts || {}), headers });
+      if (res.status === 401 && typeof window !== 'undefined' && typeof window.prompt === 'function') {
+        const entered = window.prompt('Control API Bearer token (DZ_CONTROL_TOKEN):') || '';
+        if (entered.trim()) {
+          sessionStorage.setItem('dz_control_token', entered.trim());
+          headers.Authorization = 'Bearer ' + entered.trim();
+          res = await fetch(path, { ...(opts || {}), headers });
+        }
+      }
       return res.json();
     }
 

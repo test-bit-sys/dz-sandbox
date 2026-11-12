@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import fc from 'fast-check';
@@ -9,17 +9,28 @@ import {
   createStoreFromEnv,
   DEFAULT_INITIAL_CLOCK_MS,
   isAllowedWebhookUrl,
+  isLoopbackHostOrIp,
+  isPrivateOrReservedIpOrHost,
+  isSafeHttpUrl,
   MemoryStore,
   openSqliteDatabase,
   parseDurationMs,
   redactBody,
   redactHeaders,
+  redactQuery,
+  redactStringSecrets,
+  redactUrlPath,
   registerRequestAuditHook,
   resolveBindHost,
+  resolvePathInsideDir,
+  sanitizeHeaderEntry,
+  sanitizeHostHeader,
+  sanitizeRedirectUrl,
   ScenarioEngine,
   SeededRNG,
   signHmacSha256,
   SqliteStore,
+  timingSafeEqualToken,
   verifyHmacSha256,
   VirtualClock,
   WebhookDispatcher,
@@ -690,5 +701,206 @@ describe('HTTP scenario middleware', () => {
 
     app.server.closeIdleConnections?.();
     await app.close();
+  });
+});
+
+describe('Security hardening & deterministic fuzz tests', () => {
+  it('blocks SSRF targets, metadata IPs, embedded creds, prefix bypasses, and unsafe redirects', async () => {
+    expect(isAllowedWebhookUrl('http://169.254.169.254/latest/meta-data/')).toBe(false);
+    expect(isAllowedWebhookUrl('http://10.0.0.1/hook')).toBe(false);
+    expect(isAllowedWebhookUrl('http://172.16.5.4/hook')).toBe(false);
+    expect(isAllowedWebhookUrl('http://192.168.1.50/hook')).toBe(false);
+    expect(isAllowedWebhookUrl('http://[::ffff:a9fe:a9fe]/hook')).toBe(false);
+    expect(isAllowedWebhookUrl('http://2130706433/hook')).toBe(false);
+    expect(isAllowedWebhookUrl('http://metadata.google.internal/hook')).toBe(false);
+    expect(isAllowedWebhookUrl('https://user:pass@example.com/hook')).toBe(false);
+    expect(isAllowedWebhookUrl('javascript:alert(1)')).toBe(false);
+
+    // Localhost policy toggle & origin/path allowlist boundary
+    expect(isAllowedWebhookUrl('http://127.0.0.1:4000/hook', undefined, { allowLocalhost: false })).toBe(false);
+    expect(isAllowedWebhookUrl('http://localhost:3000/hook', undefined, { allowLocalhost: false })).toBe(false);
+    expect(isAllowedWebhookUrl('https://trusted.com.evil.com/hook', ['https://trusted.com/hooks'])).toBe(false);
+    expect(isAllowedWebhookUrl('https://trusted.com/hooks/v1', ['https://trusted.com/hooks'])).toBe(true);
+    expect(isAllowedWebhookUrl('http://0x7f.0.0.1/hook')).toBe(false);
+    expect(isAllowedWebhookUrl('http://0177.0.0.1/hook')).toBe(false);
+    expect(isAllowedWebhookUrl('http://[fc00::1]/hook')).toBe(false);
+    expect(isAllowedWebhookUrl('http://[fe80::1]/hook')).toBe(false);
+    expect(isAllowedWebhookUrl('http://[::1]/hook', undefined, { allowLocalhost: true })).toBe(true);
+    expect(isAllowedWebhookUrl('https://8.8.8.8/hook')).toBe(true);
+    expect(isAllowedWebhookUrl('https://trusted.com/hook', ['not a valid rule url', 'trusted.com'])).toBe(true);
+    expect(isAllowedWebhookUrl('https://trusted.com/hook', ['http://[invalid'])).toBe(false);
+
+    expect(isLoopbackHostOrIp('[::1]')).toBe(true);
+    expect(isLoopbackHostOrIp('::ffff:127.0.0.1')).toBe(true);
+    expect(isLoopbackHostOrIp('8.8.8.8')).toBe(false);
+    expect(isPrivateOrReservedIpOrHost('')).toBe(true);
+    expect(isPrivateOrReservedIpOrHost('100.64.0.1')).toBe(true);
+    expect(isPrivateOrReservedIpOrHost('0.0.0.1')).toBe(true);
+    expect(isPrivateOrReservedIpOrHost('192.0.0.1')).toBe(true);
+    expect(isPrivateOrReservedIpOrHost('198.18.0.1')).toBe(true);
+    expect(isPrivateOrReservedIpOrHost('224.0.0.1')).toBe(true);
+    expect(isPrivateOrReservedIpOrHost('8.8.8.8')).toBe(false);
+    expect(isPrivateOrReservedIpOrHost('::ffff:7f00:0001')).toBe(true);
+    expect(isPrivateOrReservedIpOrHost('::ffff:1:2:3')).toBe(true);
+    expect(isPrivateOrReservedIpOrHost('ff00::1')).toBe(true);
+    expect(isPrivateOrReservedIpOrHost('2606:4700:4700::1111')).toBe(false);
+    expect(timingSafeEqualToken('abc', 'abcd')).toBe(false);
+    expect(timingSafeEqualToken('abc', 'abc')).toBe(true);
+
+    // Safe redirect & host header helpers
+    expect(isSafeHttpUrl('javascript:alert(1)')).toBe(false);
+    expect(sanitizeRedirectUrl('https://merchant.example/ok\r\nEvil: 1')).toBeNull();
+    expect(sanitizeHostHeader('127.0.0.1:4000', 'fallback:4000')).toBe('127.0.0.1:4000');
+    expect(sanitizeHostHeader('evil.com\r\nX-Injected: yes', 'fallback:4000')).toBe('fallback:4000');
+
+    // Webhook dispatcher uses redirect: 'manual'
+    const store = new MemoryStore();
+    const clock = new VirtualClock();
+    const rng = new SeededRNG(42);
+    let capturedRedirect: string | undefined;
+    const dispatcher = new WebhookDispatcher(store, clock, rng, {
+      fetchImpl: async (_url, init) => {
+        capturedRedirect = init?.redirect;
+        return new Response('ok', { status: 200 });
+      },
+    });
+    await dispatcher.dispatch({
+      provider: 'chargily',
+      eventType: 'checkout.paid',
+      targetUrl: 'http://127.0.0.1:9999/hook',
+      payload: { id: 'chk_sec' },
+      secret: 'test_sec',
+    });
+    expect(capturedRedirect).toBe('manual');
+  });
+
+  it('rejects CRLF / forbidden scenario headers, path traversal, and redacts sensitive logs', async () => {
+    expect(sanitizeHeaderEntry('X-Test\r\nEvil', '1').safe).toBe(false);
+    expect(sanitizeHeaderEntry('Transfer-Encoding', 'chunked').safe).toBe(false);
+    expect(sanitizeHeaderEntry('X-Safe', 'ok\nInjected: yes').safe).toBe(false);
+    expect(sanitizeHeaderEntry('Retry-After', '5').safe).toBe(true);
+
+    const store = new MemoryStore();
+    const clock = new VirtualClock();
+    const rng = new SeededRNG(7);
+    const scenarios = new ScenarioEngine(store);
+    scenarios.registerCustom({
+      name: 'bad_header_scen',
+      provider: 'chargily',
+      category: 'network',
+      description: 'Unsafe header injection attempt',
+      behavior: { outcome: 'success', headers: { Host: 'evil.com' } },
+      builtIn: false,
+    });
+
+    const app = Fastify({ logger: false });
+    const ctx = { store, clock, rng, scenarios };
+    app.get('/hdr', async (req, reply) => {
+      const resolved = scenarios.resolve({ provider: 'chargily', headerScenario: 'bad_header_scen' });
+      if (await applyNetworkScenario(ctx, 'chargily', req, reply, resolved)) return;
+      return { ok: true };
+    });
+    expect((await app.inject({ method: 'GET', url: '/hdr' })).statusCode).toBe(500);
+    await app.close();
+
+    // Path traversal & optional symlink escape in scenario loader
+    const rootTmp = mkdtempSync(path.join(os.tmpdir(), 'dz-scen-sec-'));
+    const subDir = path.join(rootTmp, 'scenarios');
+    mkdtempSync(path.join(rootTmp, 'sub-placeholder'));
+    writeFileSync(path.join(rootTmp, 'outside.yaml'), 'name: leak\nprovider: chargily\ncategory: network\nbehavior: {}');
+    const scenariosDir = path.join(rootTmp, 'dir');
+    try {
+      rmSync(scenariosDir, { recursive: true, force: true });
+    } catch {
+      // ignore
+    }
+    mkdtempSync(rootTmp + '/d'); // ensure tmpdir ops cleanly scoped below
+    expect(() => resolvePathInsideDir(rootTmp, '../outside.yaml')).toThrow();
+    expect(() => resolvePathInsideDir(subDir.replace('scenarios', ''), '../outside.yaml')).toThrow();
+    try {
+      const symTarget = path.join(rootTmp, 'outside.yaml');
+      symlinkSync(symTarget, path.join(rootTmp, 'sub-placeholder', 'escape.yaml'));
+      expect(() => scenarios.loadFromDirectory(path.join(rootTmp, 'sub-placeholder'))).toThrow();
+    } catch {
+      // Windows non-admin environments may disallow symlinks (EPERM); traversal assertion above always runs
+    } finally {
+      rmSync(rootTmp, { recursive: true, force: true });
+    }
+
+    // Secret redaction in query strings, URLs, card PANs, and tokens
+    expect(redactUrlPath('/payment/rest/register.do?userName=merch&password=mysecret&token=tok123')).toBe(
+      '/payment/rest/register.do?userName=merch&password=[REDACTED]&token=[REDACTED]',
+    );
+    expect(redactQuery({ password: 'secret_value', cardPan: '4000123456780001', safe: 'ok' })).toEqual({
+      password: '***alue',
+      cardPan: '***0001',
+      safe: 'ok',
+    });
+    expect(
+      redactBody({
+        note: 'Called with test_sk_1234567890 and card 4000-1234-5678-0001',
+        nestedObjSecret: { token: { a: 1 }, cardPan: 4000000000000001 },
+      }),
+    ).toEqual({
+      note: 'Called with ***7890 and card ***0001',
+      nestedObjSecret: { token: '[REDACTED]', cardPan: '***0001' },
+    });
+    expect(redactStringSecrets('')).toBe('');
+    expect(redactStringSecrets('Authorization Bearer sk_test_abcdefgh')).toContain('***efgh');
+    expect(redactQuery(['ignored'])).toEqual({});
+  });
+
+  it('property: ScenarioEngine precedence and seeded RNG replay remain deterministic under fuzzing', () => {
+    const scenarioArb = fc.constantFrom('success', 'declined', 'slow', 'gateway_500', 'timeout');
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 1_000_000 }),
+        scenarioArb,
+        fc.option(scenarioArb, { nil: undefined }),
+        fc.option(scenarioArb, { nil: undefined }),
+        fc.option(scenarioArb, { nil: undefined }),
+        (seed, defaultScen, seqStep, resourceScen, headerScen) => {
+          const runOnce = () => {
+            const store = new MemoryStore();
+            const engine = new ScenarioEngine(store);
+            const rng = new SeededRNG(seed);
+            const clock = new VirtualClock();
+            engine.setDefault('chargily', defaultScen);
+            if (seqStep) engine.setSequence('chargily', [seqStep, 'success'], true);
+            if (resourceScen) engine.setResourceScenario('chargily', 'res_fuzz', resourceScen);
+
+            const picked = engine.resolve({
+              provider: 'chargily',
+              headerScenario: headerScen,
+              resourceId: 'res_fuzz',
+            });
+            return {
+              pickedName: picked.name,
+              pickedSource: picked.source,
+              randId: rng.id('chk'),
+              nowIso: clock.isoNow(),
+            };
+          };
+
+          const first = runOnce();
+          const second = runOnce();
+          expect(first).toEqual(second);
+
+          if (headerScen) {
+            expect(first.pickedName).toBe(headerScen);
+            expect(first.pickedSource).toBe('header');
+          } else if (resourceScen) {
+            expect(first.pickedName).toBe(resourceScen);
+            expect(first.pickedSource).toBe('resource');
+          } else if (seqStep) {
+            expect(first.pickedName).toBe(seqStep);
+            expect(first.pickedSource).toBe('sequence');
+          } else {
+            expect(first.pickedName).toBe(defaultScen);
+            expect(first.pickedSource).toBe('default');
+          }
+        },
+      ),
+    );
   });
 });

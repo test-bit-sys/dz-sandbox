@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   applyNetworkScenario,
   getScenarioHeader,
+  isSafeHttpUrl,
   registerRequestAuditHook,
   type SandboxContext,
   type WebhookDispatcher,
@@ -42,7 +43,11 @@ const CreateParcelItemSchema = z.object({
   stopdesk_id: z.number().int().nonnegative().optional().default(0),
   has_exchange: z.boolean().optional().default(false),
   weight: z.number().positive().optional().default(1),
-  webhook_url: z.string().url().optional(),
+  webhook_url: z
+    .string()
+    .max(2048)
+    .refine(isSafeHttpUrl, { message: 'URL must use http(s) without embedded credentials' })
+    .optional(),
 });
 
 const UpdateParcelSchema = z.object({
@@ -72,7 +77,7 @@ function paginateYalidine<T>(items: T[], pageRaw?: string, pageSizeRaw?: string)
 export function createYalidineServer(deps: YalidineServerDeps): FastifyInstance {
   const { ctx, webhooks } = deps;
   const dataset = deps.dataset ?? new FullAlgeriaGeoDataset();
-  const app = Fastify({ logger: false, bodyLimit: 1024 * 1024 });
+  const app = Fastify({ logger: false, bodyLimit: 512 * 1024 });
   registerRequestAuditHook(app, ctx, 'yalidine');
 
   async function guardRequest(
@@ -206,8 +211,11 @@ export function createYalidineServer(deps: YalidineServerDeps): FastifyInstance 
         }
 
         const rawItems = Array.isArray(request.body) ? request.body : [request.body];
-        if (rawItems.length === 0) {
-          return reply.code(422).send({ error: 'EMPTY_BATCH', message: 'At least one parcel is required' });
+        if (rawItems.length === 0 || rawItems.length > 200) {
+          return reply.code(422).send({
+            error: 'INVALID_BATCH_SIZE',
+            message: 'Parcel batch size must be between 1 and 200',
+          });
         }
 
         const parsedItems: Array<z.infer<typeof CreateParcelItemSchema>> = [];

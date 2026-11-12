@@ -1,5 +1,10 @@
 import type { VirtualClock } from './clock.js';
 import type { SeededRNG } from './rng.js';
+import {
+  isLoopbackHostOrIp,
+  isPrivateOrReservedIpOrHost,
+  isSafeHttpUrl,
+} from './security.js';
 import { signHmacSha256 } from './signer.js';
 import type { SandboxStore } from './store.js';
 import type {
@@ -22,38 +27,79 @@ export interface WebhookDispatchRequest {
 
 export interface WebhookDispatcherOptions {
   allowlist?: string[];
+  allowLocalhost?: boolean;
+  blockPrivateRanges?: boolean;
   fetchImpl?: typeof fetch;
   defaultSecret?: string;
   retryBackoffMs?: number[];
 }
 
-export function isAllowedWebhookUrl(targetUrl: string, allowlist?: string[]): boolean {
-  let parsed: URL;
-  try {
-    parsed = new URL(targetUrl);
-  } catch {
-    return false;
-  }
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    return false;
-  }
-  if (!allowlist || allowlist.length === 0) {
-    return true;
-  }
-  return allowlist.some((rule) => {
-    const trimmed = rule.trim();
-    if (!trimmed) return false;
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return targetUrl.startsWith(trimmed);
+export interface WebhookUrlPolicyOptions {
+  allowLocalhost?: boolean;
+  blockPrivateRanges?: boolean;
+}
+
+function matchesAllowlistRule(parsedTarget: URL, rule: string): boolean {
+  const trimmed = rule.trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    let parsedRule: URL;
+    try {
+      parsedRule = new URL(trimmed);
+    } catch {
+      return false;
     }
-    return parsed.hostname === trimmed || parsed.host === trimmed;
-  });
+    if (parsedTarget.origin !== parsedRule.origin) {
+      return false;
+    }
+    if (parsedRule.pathname === '/' || parsedRule.pathname === '') {
+      return true;
+    }
+    const base = parsedRule.pathname.replace(/\/+$/, '');
+    return parsedTarget.pathname === base || parsedTarget.pathname.startsWith(`${base}/`);
+  }
+  const normalizedRule = trimmed.toLowerCase();
+  return (
+    parsedTarget.hostname.toLowerCase() === normalizedRule ||
+    parsedTarget.host.toLowerCase() === normalizedRule
+  );
+}
+
+export function isAllowedWebhookUrl(
+  targetUrl: string,
+  allowlist?: string[],
+  policy: WebhookUrlPolicyOptions = {},
+): boolean {
+  if (!isSafeHttpUrl(targetUrl)) {
+    return false;
+  }
+  const parsed = new URL(targetUrl);
+  const allowLocalhost =
+    policy.allowLocalhost ?? (process.env.DZ_ALLOW_LOCALHOST_WEBHOOKS !== 'false');
+  const blockPrivateRanges = policy.blockPrivateRanges ?? true;
+
+  if (allowlist && allowlist.length > 0) {
+    return allowlist.some((rule) => matchesAllowlistRule(parsed, rule));
+  }
+
+  const host = parsed.hostname;
+  if (isLoopbackHostOrIp(host)) {
+    return allowLocalhost;
+  }
+
+  if (blockPrivateRanges && isPrivateOrReservedIpOrHost(host)) {
+    return false;
+  }
+
+  return true;
 }
 
 export class WebhookDispatcher {
   private readonly fetchImpl: typeof fetch;
   private readonly retryBackoffMs: number[];
   private readonly allowlist: string[] | undefined;
+  private readonly allowLocalhost: boolean;
+  private readonly blockPrivateRanges: boolean;
 
   constructor(
     private readonly store: SandboxStore,
@@ -63,6 +109,9 @@ export class WebhookDispatcher {
   ) {
     this.fetchImpl = options.fetchImpl ?? fetch;
     this.retryBackoffMs = options.retryBackoffMs ?? [1000, 5000, 15000];
+    this.allowLocalhost =
+      options.allowLocalhost ?? (process.env.DZ_ALLOW_LOCALHOST_WEBHOOKS !== 'false');
+    this.blockPrivateRanges = options.blockPrivateRanges ?? true;
     this.allowlist =
       options.allowlist ??
       (process.env.DZ_WEBHOOK_ALLOWLIST
@@ -78,8 +127,13 @@ export class WebhookDispatcher {
    * - delayMs (delayed_webhook): schedules delivery on VirtualClock
    */
   async dispatch(req: WebhookDispatchRequest): Promise<WebhookLogEntry[]> {
-    if (!isAllowedWebhookUrl(req.targetUrl, this.allowlist)) {
-      throw new Error(`Webhook target URL rejected by policy: ${req.targetUrl}`);
+    if (
+      !isAllowedWebhookUrl(req.targetUrl, this.allowlist, {
+        allowLocalhost: this.allowLocalhost,
+        blockPrivateRanges: this.blockPrivateRanges,
+      })
+    ) {
+      throw new Error(`Webhook target URL rejected by SSRF/allowlist policy: ${req.targetUrl}`);
     }
 
     const behavior = req.behavior ?? {};
@@ -191,6 +245,7 @@ export class WebhookDispatcher {
         method: 'POST',
         headers: entry.headers,
         body: JSON.stringify(entry.payload),
+        redirect: 'manual',
       });
       const responseText = await response.text();
       const durationMs = Math.max(1, Date.now() - started);
