@@ -1,0 +1,87 @@
+openapi: "3.0.3"
+info:
+  title: Algerian Courier Demo API (Handwritten Experimental Sample)
+  version: "0.1.0"
+paths:
+  /shipments:
+    get:
+      operationId: listShipments
+      parameters:
+        - name: wilaya_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 69
+      responses:
+        "200":
+          description: List shipments
+          content:
+            application/json:
+              example:
+                items:
+                  - tracking: DEMO-16-001
+                    wilaya_id: 16
+                    status: pending
+    post:
+      operationId: createShipment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateShipmentRequest"
+      responses:
+        "201":
+          description: Shipment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentCreatedResponse"
+  /shipments/{tracking}:
+    get:
+      operationId: getShipment
+      responses:
+        "200":
+          description: Single shipment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentCreatedResponse"
+components:
+  schemas:
+    CreateShipmentRequest:
+      type: object
+      required:
+        - recipient_name
+        - wilaya_id
+        - amount_dzd
+      properties:
+        recipient_name:
+          type: string
+          minLength: 2
+        wilaya_id:
+          type: integer
+          minimum: 1
+          maximum: 69
+        amount_dzd:
+          type: number
+          minimum: 100
+        mode:
+          type: string
+          enum:
+            - home
+            - stopdesk
+    ShipmentCreatedResponse:
+      type: object
+      properties:
+        tracking:
+          type: string
+          example: DEMO-16-001
+        status:
+          type: string
+          example: created
+        created_at:
+          type: string
+          format: date-time

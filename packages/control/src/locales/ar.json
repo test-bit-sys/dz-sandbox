@@ -20,7 +20,9 @@
     "status": "الحالة",
     "requestsTotal": "إجمالي الطلبات",
     "webhooksTotal": "إجمالي الويب هوك",
-    "clockNow": "الوقت الافتراضي"
+    "clockNow": "الوقت الافتراضي",
+    "experimentalBadge": "تجريبي",
+    "experimentalNote": "المزودون المولدون عبر OpenAPI تجريبيون وبلا حالة ولا يغطون آلات الحالة الكاملة."
   },
   "requests": {
     "filterProvider": "تصفية حسب المزود",

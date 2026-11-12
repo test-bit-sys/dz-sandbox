@@ -3,8 +3,10 @@ import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  createOpenApiMockServer,
   createRecorderProxy,
   createReplayServer,
+  generateOpenApiProviderFiles,
   MemoryStore,
   ScenarioEngine,
   SeededRNG,
@@ -64,6 +66,8 @@ Usage:
   dz-sandbox record --provider <name> --upstream <url> --out <dir> [--port 4100] [--no-redact --confirm-unredacted]
   dz-sandbox replay --provider <name> --fixtures <dir> [--port 4101]
   dz-sandbox fixtures validate [dir]
+  dz-sandbox generate --openapi <file> --name <provider> [--out ./generated-providers/<name>]
+  dz-sandbox serve-openapi --openapi <file> --name <provider> [--port 4200]
   dz-sandbox doctor`);
 }
 
@@ -290,6 +294,62 @@ export async function runCli(argv: string[]): Promise<number> {
     });
     const addr = await app.listen({ host: '127.0.0.1', port });
     console.log(`dz-sandbox replay server (${provider}) listening at ${addr} (${exchanges.length} fixture(s))`);
+    const shutdown = async () => {
+      await app.close();
+      store.close();
+      process.exit(0);
+    };
+    process.on('SIGINT', () => void shutdown());
+    process.on('SIGTERM', () => void shutdown());
+    return 0;
+  }
+
+  if (cmd === 'generate') {
+    const openApiFile = getFlag(argv, '--openapi');
+    const provider = getFlag(argv, '--name');
+    if (!openApiFile || !provider) {
+      console.error(
+        'Usage: dz-sandbox generate --openapi <file> --name <provider> [--out ./generated-providers/<name>]',
+      );
+      return 1;
+    }
+    const outDir = getFlag(argv, '--out') ?? path.resolve(process.cwd(), 'generated-providers', provider);
+    const res = generateOpenApiProviderFiles({
+      provider,
+      openApiPath: path.resolve(process.cwd(), openApiFile),
+      outDir,
+    });
+    console.log(
+      `[EXPERIMENTAL] Generated OpenAPI mock provider "${res.provider}" at ${res.outDir} (${res.routes.length} route(s))`,
+    );
+    for (const f of res.files) {
+      console.log(`  - ${f}`);
+    }
+    return 0;
+  }
+
+  if (cmd === 'serve-openapi') {
+    const openApiFile = getFlag(argv, '--openapi');
+    const provider = getFlag(argv, '--name');
+    if (!openApiFile || !provider) {
+      console.error('Usage: dz-sandbox serve-openapi --openapi <file> --name <provider> [--port 4200]');
+      return 1;
+    }
+    const port = Number.parseInt(getFlag(argv, '--port') ?? '4200', 10);
+    const specText = readFileSync(path.resolve(process.cwd(), openApiFile), 'utf8');
+    const store = new MemoryStore();
+    const clock = new VirtualClock();
+    const rng = new SeededRNG(1337);
+    const scenarios = new ScenarioEngine(store);
+    const { app, routes } = createOpenApiMockServer({
+      provider,
+      spec: specText,
+      ctx: { store, clock, rng, scenarios },
+    });
+    const addr = await app.listen({ host: '127.0.0.1', port });
+    console.log(
+      `[EXPERIMENTAL] dz-sandbox OpenAPI mock "${provider}" listening at ${addr} (${routes.length} route(s))`,
+    );
     const shutdown = async () => {
       await app.close();
       store.close();

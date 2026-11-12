@@ -28,3 +28,23 @@ Scaffold an npm workspace package depending on `@dz-sandbox/core`, `fastify`, an
 1. Update `packages/cli/src/runtime.ts` and `doctor.ts` to assign a default port (`4004`, `DZ_<PROVIDER>_PORT`) and expose URLs in `.env` snippets.
 2. Add built-in scenarios if provider-specific in `packages/core/src/scenarios.ts`.
 3. Update `Dockerfile`, `docker-compose.yml`, and `README*.md`.
+
+---
+
+## Experimental: Generate a Stateless Mock from OpenAPI 3.x
+
+If you already have an OpenAPI 3.x specification (`YAML` or `JSON`), you can generate a starter **experimental** provider mock immediately:
+
+```bash
+npx dz-sandbox generate --openapi ./fixtures/openapi-demo/courier-demo.openapi.yaml --name courier-demo --out ./generated-providers/courier-demo
+node ./generated-providers/courier-demo/server.mjs
+```
+
+Or boot it directly without writing files:
+
+```bash
+npx dz-sandbox serve-openapi --openapi ./fixtures/openapi-demo/courier-demo.openapi.yaml --name courier-demo --port 4200
+```
+
+> [!WARNING]
+> **Experimental Limitations:** OpenAPI-generated mocks are stateless request/response validators (`example` / schema synthesis) with scenario fault injection (`gateway_500`, `slow`, `rate_limited`, `timeout`, `network_drop`). They do not implement stateful payment/delivery state machines, external `$ref` URLs, polymorphic discriminators, or automatic webhook dispatch. Generated providers must keep their `experimental` label until backed by hand-authored behavior and real fixtures.

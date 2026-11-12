@@ -72,6 +72,21 @@ describe('dz-sandbox CLI & runtime', () => {
     expect(await runCli(['doctor'])).toBe(0);
     expect(await runCli(['record'])).toBe(1);
     expect(await runCli(['replay'])).toBe(1);
+    expect(await runCli(['generate'])).toBe(1);
+    expect(await runCli(['serve-openapi'])).toBe(1);
+
+    const demoOpenApi = path.resolve(
+      import.meta.dirname,
+      '..',
+      '..',
+      '..',
+      'fixtures',
+      'openapi-demo',
+      'courier-demo.openapi.yaml',
+    );
+    const genDir = path.join(tempDir, 'gen-courier');
+    expect(await runCli(['generate', '--openapi', demoOpenApi, '--name', 'courier-demo', '--out', genDir])).toBe(0);
+    expect(existsSync(path.join(genDir, 'server.mjs'))).toBe(true);
 
     const repoFixtures = path.resolve(import.meta.dirname, '..', '..', '..', 'fixtures');
     expect(await runCli(['fixtures', 'validate', repoFixtures])).toBe(0);

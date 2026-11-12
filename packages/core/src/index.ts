@@ -8,4 +8,5 @@ export * from './scenarios.js';
 export * from './webhooks.js';
 export * from './security.js';
 export * from './recorder.js';
+export * from './openapi-mock.js';
 export * from './http.js';

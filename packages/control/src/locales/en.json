@@ -20,7 +20,9 @@
     "status": "Status",
     "requestsTotal": "Total Requests",
     "webhooksTotal": "Total Webhooks",
-    "clockNow": "Virtual Clock"
+    "clockNow": "Virtual Clock",
+    "experimentalBadge": "experimental",
+    "experimentalNote": "Experimental OpenAPI generator mocks are stateless and mark their responses as unverified simulations."
   },
   "requests": {
     "filterProvider": "Filter by provider",

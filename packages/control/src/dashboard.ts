@@ -301,6 +301,10 @@ export function renderDashboardHtml(): string {
           '<div class="card"><h3>' + esc(t('overview.requestsTotal')) + '</h3><strong>' + lastState.requestCount + '</strong></div>' +
           '<div class="card"><h3>' + esc(t('overview.webhooksTotal')) + '</h3><strong>' + lastState.webhookCount + '</strong></div>' +
           '<div class="card"><h3>' + esc(t('overview.clockNow')) + '</h3><code>' + esc(lastState.clockIso) + '</code></div>' +
+        '</div>' +
+        '<div class="card" style="margin-top:16px">' +
+          '<span class="badge warn">' + esc(t('overview.experimentalBadge')) + '</span> ' +
+          '<span style="font-size:13px;color:var(--muted)">' + esc(t('overview.experimentalNote')) + '</span>' +
         '</div>';
     }
 
