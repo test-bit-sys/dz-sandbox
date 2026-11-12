@@ -109,6 +109,26 @@ Last ~15 lines of real output:
 ```
 Result: Exit 0 (Verified AR RTL default, FR/EN toggle, keyboard ArrowRight tab navigation, live Request Log, hosted checkout Payment Preview iframe completion, Webhooks redelivery, Scenario Matrix coverage tracking + `rate_limited` -> HTTP `429`, Clock `+1h` advance, zero external requests, zero page errors, WCAG 2.1 AA computed contrast >= 4.5:1 & ARIA checks across dark and light themes). Note: `@axe-core/playwright` npm package is absent from local offline cache (see `BLOCKED.md` `B-05`); `scripts/browser-e2e.mjs` invokes it automatically when installed in online CI.
 
+### STEP 6: Static Offline Docs Site, Search Index & 9 Common Integration Bug Guides
+
+Command:
+```bash
+npm run docs:build && npm run test:docs
+```
+Last ~15 lines of real output:
+```text
+> dz-sandbox-monorepo@0.1.0 docs:build
+> node scripts/build-docs-site.mjs
+
+Built 34 HTML docs pages into dist-docs/
+
+> dz-sandbox-monorepo@0.1.0 test:docs
+> node scripts/build-docs-site.mjs --verify
+
+{"docsSite":"OK","pagesBuilt":34,"internalLinksVerified":348,"searchEntries":33,"externalAssetRequests":0,"defaultLocale":"ar-rtl"}
+```
+Result: Exit 0 (Generated 34 static HTML pages with Arabic RTL default `index.html`, French/English landing pages, zero external CDN/script/font requests, inline offline search index validated against `duplicate_webhook`, `contributing-fixtures`, and `THREAT_MODEL`, all 348 internal links verified, and `.github/workflows/docs-pages.yml` configured for manual `workflow_dispatch` only).
+
 ---
 
 ## 2. Checks Marked `NOT RUN` Locally (and Why)
@@ -118,4 +138,4 @@ Result: Exit 0 (Verified AR RTL default, FR/EN toggle, keyboard ArrowRight tab n
 | `docker compose up --build` | Docker Desktop / `docker` CLI is not installed on the local Windows build machine | Static audit of `Dockerfile` (copies all `packages/*` AND `examples/*` workspace `package.json` files before `npm ci`) and `docker-compose.yml` (`127.0.0.1` host port binding); automated in `.github/workflows/ci.yml` `docker-smoke` job on `ubuntu-latest` |
 | Node 20 runtime without `node:sqlite` | Local host runs Node `v26.7.0` | `packages/core/src/core.test.ts` tests the SQLite fallback path when `node:sqlite` is unavailable; `.github/workflows/ci.yml` runs `verify` matrix on `[20, 22]` |
 | Full `next build` on `examples/nextjs-cod-store` | Installing `next@^15` separately hit TLS failure (`ERR_SSL_CIPHER_OPERATION_FAILED`) offline, so `next` is declared as an optional `peerDependency` | `examples/nextjs-cod-store/demo.mjs` transpiles `app/api/orders/cod/route.ts` with `typescript` offline and asserts `created_ok -> 201`, `phone_rejected -> 422`, `rate_limited -> 503` |
-| Live provider sandbox contract verification (Chargily test mode, SATIM bank PDF, Yalidine API v1) | No live merchant keys, bank documentation PDF, or internet sandbox credentials are bundled or committed | All unverified endpoints/fields remain tagged `Unverified` or `Partial` in [docs/SPEC_STATUS.md](./SPEC_STATUS.md); contributors can capture sanitized fixtures via [docs/CAPTURE_GUIDE.md](./docs/CAPTURE_GUIDE.md) and `scripts/redact-fixture.mjs` |
+| Live provider sandbox contract verification (Chargily test mode, SATIM bank PDF, Yalidine API v1) | No live merchant keys, bank documentation PDF, or internet sandbox credentials are bundled or committed | All unverified endpoints/fields remain tagged `Unverified` or `Partial` in [docs/SPEC_STATUS.md](./SPEC_STATUS.md); contributors can capture sanitized fixtures via [docs/CAPTURE_GUIDE.md](./CAPTURE_GUIDE.md) and `scripts/redact-fixture.mjs` |

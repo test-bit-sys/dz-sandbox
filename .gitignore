@@ -15,3 +15,5 @@ __pycache__/
 *.pyc
 .dz-sandbox.pid
 algeria-geo-main/
+dist-docs/
+generated-providers/
