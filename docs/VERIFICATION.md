@@ -154,6 +154,38 @@ YALIDINE_API_TOKEN=test_api_token
 ```
 Result: Exit 0 (All 9 tarballs contain `dist/`, `LICENSE`, `README.md`, `package.json` with zero `.ts` sources; offline clean install added 61 packages, `npx dz-sandbox doctor` succeeded, `startSandboxRuntime` + `createSandboxClient` enforced `rate_limited` -> `429`, and both scaffold packages imported cleanly).
 
+### STEP 8: Final Clean Full-Suite Verification (`dist` wiped & rebuilt from scratch)
+
+Commands run sequentially after wiping `packages/*/dist` and `dist-docs/`:
+1. `npm run build` (Exit 0)
+2. `npm run typecheck` (Exit 0)
+3. `npm run lint` (Exit 0)
+4. `npm run test:coverage` (Exit 0)
+5. `npm run test:python` (Exit 0)
+6. `npm run examples:smoke` (Exit 0)
+7. `npm run test:e2e:browser` (Exit 0)
+8. `npm run docs:build` (Exit 0)
+9. `npm run test:docs` (Exit 0)
+10. `node packages/cli/dist/cli.js fixtures validate fixtures` (Exit 0)
+
+Last ~15 lines of real outputs (coverage summary + integration/docs checks):
+```text
+All files          |   95.58 |     85.5 |   95.25 |   95.58 |
+(Test Files 13 passed (13), Tests 49 passed (49); core 96.53/86.41/97.56/96.53,
+ mock-chargily 99.76/89.58/100/99.76, mock-satim 98.04/87.61/100/98.04,
+ mock-yalidine 99.72/90.38/96.96/99.72, mock-zrexpress & mock-maystro 100/100/100/100)
+
+Ran 1 test in 0.283s (OK)
+All 3 examples passed smoke verification!
+{"browserE2E":"OK","executable":"chrome.exe","externalRequests":0,"pageErrors":0,"webhooksReceived":2,"clockBefore":"2026-01-01T09:00:00.000Z","clockAfter":"2026-01-01T10:00:00.000Z"}
+Built 34 HTML docs pages into dist-docs/
+{"docsSite":"OK","pagesBuilt":34,"internalLinksVerified":348,"searchEntries":33,"externalAssetRequests":0,"defaultLocale":"ar-rtl"}
+Validated 5 fixture file(s) in D:\git hub\pull request\dz-sandbox\fixtures (captured: 0, seed: 5)
+```
+Note on `npm ci` & `npm audit`:
+- `npm ci --offline --no-audit --no-fund --dry-run` exited 0 (`added 34 packages in 7s`); existing offline `node_modules` was preserved because `better-sqlite3`'s install script requires network access if `prebuild-install` needs downloading binaries without local C++ build tools.
+- `npm audit --omit=dev --audit-level=high --offline` returns exit 0 (`found 0 vulnerabilities`) only because `--offline` skips online registry advisory lookup; online `npm audit` on `zod@^3.24.2` still flags `GHSA-mrhx-c7xc-m3w5` (`zod <4.6.6`, documented in `DECISIONS.md` `D-01` and mitigated via Fastify `bodyLimit` + bounded Zod schemas).
+
 ---
 
 ## 2. Checks Marked `NOT RUN` Locally (and Why)

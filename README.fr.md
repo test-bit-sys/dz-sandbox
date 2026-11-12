@@ -96,10 +96,14 @@ npx dz-sandbox scenario set chargily declined # Active le scénario de carte ref
 npx dz-sandbox logs --provider yalidine       # Inspecte les requêtes avec secrets masqués
 npx dz-sandbox export repro.json              # Exporte état + scénarios pour reproduire un bug
 npx dz-sandbox import repro.json              # Rejoue exactement un rapport d'incident
+npx dz-sandbox record --provider yalidine --upstream https://api.yalidine.app/v1 --out ./fixtures/yalidine/captured
+npx dz-sandbox fixtures validate ./fixtures   # Vérifie l'absence de secrets/PII non masqués
+npx dz-sandbox generate --openapi ./spec.yaml --name custom-courier # Générateur expérimental OpenAPI
 ```
 
 - **27 scénarios intégrés** (paiement, réseau, webhooks, livraison) — voir [docs/scenarios.md](./docs/scenarios.md).
 - Scénarios YAML personnalisés rechargés à chaud depuis `./scenarios/*.yaml`.
 - Stockage **mémoire** (`DZ_STORE=memory`) ou **SQLite** (`DZ_STORE=sqlite`) compatible Node 20+.
+- **Docs statiques hors ligne & E2E :** `npm run docs:build && npm run test:docs` (`dist-docs/`), `npm run test:e2e:browser` (Chromium Playwright).
 - **Exemples exécutables :** [examples/express-checkout](./examples/express-checkout) (handler naïf vs idempotent), [examples/nextjs-cod-store](./examples/nextjs-cod-store), [examples/test-with-vitest](./examples/test-with-vitest) via `npm run examples:smoke`.
-- Voir aussi : [docs/VERIFICATION.md](./docs/VERIFICATION.md) · [docs/CAPTURE_GUIDE.md](./docs/CAPTURE_GUIDE.md) · [CHANGELOG.md](./CHANGELOG.md) · [Licence MIT](./LICENSE)
+- Voir aussi : [docs/THREAT_MODEL.md](./docs/THREAT_MODEL.md) · [docs/CONTRIBUTING-FIXTURES.md](./docs/CONTRIBUTING-FIXTURES.md) · [9 guides d'erreurs courantes](./docs/guides/common-integration-bugs.md) · [docs/VERIFICATION.md](./docs/VERIFICATION.md) · [docs/CAPTURE_GUIDE.md](./docs/CAPTURE_GUIDE.md) · [CHANGELOG.md](./CHANGELOG.md) · [Licence MIT](./LICENSE)

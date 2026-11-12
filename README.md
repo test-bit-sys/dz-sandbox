@@ -98,19 +98,25 @@ npx dz-sandbox scenario set chargily declined # Switch global scenario
 npx dz-sandbox logs --provider yalidine       # Inspect redacted requests
 npx dz-sandbox export repro.json              # Save deterministic state + scenarios bundle
 npx dz-sandbox import repro.json              # Replay an exact bug report locally
+npx dz-sandbox record --provider yalidine --upstream https://api.yalidine.app/v1 --out ./fixtures/yalidine/captured
+npx dz-sandbox fixtures validate ./fixtures   # Fail if unredacted secrets or PII remain
+npx dz-sandbox generate --openapi ./spec.yaml --name custom-courier # Experimental OpenAPI scaffold
 ```
 
 - **27 built-in scenarios** (`declined`, `insufficient_funds`, `timeout`, `network_drop`, `duplicate_webhook`, `delayed_webhook`, `out_of_order_webhooks`, `webhook_bad_signature`, `webhook_never_sent`, `rate_limited`, `lifecycle_fast`, `returned_to_sender`, etc.) — see [docs/scenarios.md](./docs/scenarios.md).
 - **Custom YAML scenarios** hot-reloaded from `./scenarios/*.yaml`.
 - **SQLite (`DZ_STORE=sqlite`) or in-memory (`DZ_STORE=memory`)** storage (supports Node 20+ with automatic `node:sqlite` / fallback handling).
+- **Offline Docs & E2E checks:** `npm run docs:build && npm run test:docs` (static AR RTL/FR/EN docs + offline search in `dist-docs/`), `npm run test:e2e:browser` (Chromium Playwright E2E).
 
 ## Documentation
 
 - [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md) — Verified vs. unverified API surface
 - [docs/VERIFICATION.md](./docs/VERIFICATION.md) — Real command outputs vs. `NOT RUN` checks
-- [docs/CAPTURE_GUIDE.md](./docs/CAPTURE_GUIDE.md) — How to capture & sanitize real sandbox fixtures (`scripts/redact-fixture.mjs`)
+- [docs/THREAT_MODEL.md](./docs/THREAT_MODEL.md) — SSRF, redirect, traversal, redaction & auth controls
+- [docs/CAPTURE_GUIDE.md](./docs/CAPTURE_GUIDE.md) & [docs/CONTRIBUTING-FIXTURES.md](./docs/CONTRIBUTING-FIXTURES.md) — Record, sanitize & contribute real sandbox fixtures
+- [docs/guides/common-integration-bugs.md](./docs/guides/common-integration-bugs.md) — 9 reproducible production integration bug guides
 - [docs/scenarios.md](./docs/scenarios.md) — Complete failure & lifecycle catalog
 - [docs/architecture.md](./docs/architecture.md) — System design, security defaults, and data flow
-- [docs/adding-a-provider.md](./docs/adding-a-provider.md) — Add ZR Express, Maystro, or Ecotrack
+- [docs/adding-a-provider.md](./docs/adding-a-provider.md) — Add ZR Express, Maystro, or Ecotrack (or use experimental OpenAPI generator)
 - [examples/](./examples) — Express checkout (naive duplicate bug vs. idempotent fix), Next.js COD store, Vitest test suite (`npm run examples:smoke`)
 - [CHANGELOG.md](./CHANGELOG.md) · [CONTRIBUTING.md](./CONTRIBUTING.md) · [SECURITY.md](./SECURITY.md) · [MIT License](./LICENSE)

@@ -96,10 +96,14 @@ npx dz-sandbox scenario set chargily declined # تفعيل سيناريو رفض
 npx dz-sandbox logs --provider yalidine       # عرض الطلبات مع إخفاء المفاتيح الحساسة
 npx dz-sandbox export repro.json              # تصدير الحالة والسيناريوهات لمشاركة نفس الخطأ
 npx dz-sandbox import repro.json              # إعادة تشغيل نفس التقرير محلياً
+npx dz-sandbox record --provider yalidine --upstream https://api.yalidine.app/v1 --out ./fixtures/yalidine/captured
+npx dz-sandbox fixtures validate ./fixtures   # التحقق من خلو البيانات من المفاتيح الحساسة أو PII
+npx dz-sandbox generate --openapi ./spec.yaml --name custom-courier # توليد مزود تجريبي من OpenAPI
 ```
 
 - **27 سيناريو مدمج** لأعطال الدفع والشبكة والـ Webhooks والتوصيل — راجع [docs/scenarios.md](./docs/scenarios.md).
 - دعم ملفات YAML المخصصة في `./scenarios/*.yaml` مع إعادة التحميل الفوري.
 - لوحة تحكم تدعم **العربية (RTL افتراضياً) والفرنسية والإنجليزية**، وتخزين بالذاكرة (`DZ_STORE=memory`) أو SQLite (`DZ_STORE=sqlite`).
+- **توثيق ثابت يعمل دون إنترنت واختبار متصفح E2E:** `npm run docs:build && npm run test:docs` (`dist-docs/`)، `npm run test:e2e:browser`.
 - **الأمثلة القابلة للتشغيل:** [examples/express-checkout](./examples/express-checkout) (يعرض خطأ تكرار الـ Webhook مقابل الحل السليم)، و [examples/nextjs-cod-store](./examples/nextjs-cod-store)، و [examples/test-with-vitest](./examples/test-with-vitest) عبر الأمر `npm run examples:smoke`.
-- راجع أيضاً: [docs/VERIFICATION.md](./docs/VERIFICATION.md) · [docs/CAPTURE_GUIDE.md](./docs/CAPTURE_GUIDE.md) · [CHANGELOG.md](./CHANGELOG.md) · [MIT License](./LICENSE)
+- راجع أيضاً: [docs/THREAT_MODEL.md](./docs/THREAT_MODEL.md) · [docs/CONTRIBUTING-FIXTURES.md](./docs/CONTRIBUTING-FIXTURES.md) · [أدلة أخطاء التكامل الشائعة (9)](./docs/guides/common-integration-bugs.md) · [docs/VERIFICATION.md](./docs/VERIFICATION.md) · [docs/CAPTURE_GUIDE.md](./docs/CAPTURE_GUIDE.md) · [CHANGELOG.md](./CHANGELOG.md) · [MIT License](./LICENSE)
