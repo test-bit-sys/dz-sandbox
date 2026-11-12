@@ -1,0 +1,24 @@
+{
+  "name": "@dz-sandbox/mock-yalidine",
+  "version": "0.1.0",
+  "description": "Yalidine Express API v1 local mock server with geo dataset interface and virtual-clock parcel lifecycle simulator",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dz-sandbox/core": "0.1.0",
+    "fastify": "^5.2.1",
+    "zod": "^3.24.2"
+  }
+}

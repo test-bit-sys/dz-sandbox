@@ -48,14 +48,14 @@ Official reference: `https://api.yalidine.app/v1/` (Yalidine Merchant Developer 
 
 | Endpoint / Feature | Implemented | Status | Source / Notes |
 | --- | --- | --- | --- |
-| Auth (`X-API-ID`, `X-API-TOKEN`) | Planned | Partial | Public docs; exact 401/403 & 429 rate-limit headers (`Retry-After` / `X-RateLimit-*`) unverified |
-| `GET /v1/wilayas` | Planned | Partial | Public docs; 58/69 wilaya dataset completeness tracked below |
-| `GET /v1/communes` | Planned | Partial | Public docs; `algeria-geo` not present in workspace — minimal verified subset shipped behind `GeoDataset` interface |
-| `GET /v1/centers` | Planned | Unverified | Public docs mention stopdesk centers; exact center IDs & fields need official response fixture |
-| `GET /v1/deliveryfees` | Planned | Partial | Query `from_wilaya_id`, `to_wilaya_id`; exact per-commune fee breakdown (`per_commune`, `retour_fee`, `cod_percentage`, `oversize_fee`) unverified |
-| `POST/GET/PATCH/DELETE /v1/parcels` | Planned | Partial | Public docs (bulk array create, tracking IDs `yal-...`, `is_stopdesk`, `stopdesk_id`, `price`, `freeshipping`); exact validation errors & PATCH rules unverified |
-| `GET /v1/histories` | Planned | Unverified | Exact query filters (`tracking`, `status`) and response envelope unverified |
-| Webhooks (parcel status updates) | Planned | Unverified | Unconfirmed whether Yalidine v1 pushes webhooks natively or relies on polling `histories`; simulated behind opt-in config |
+| Auth (`X-API-ID`, `X-API-TOKEN`) | Yes | Partial | Public docs; exact 401/403 & 429 rate-limit headers (`Retry-After` / `X-RateLimit-*`) unverified |
+| `GET /v1/wilayas` | Yes | Partial | Minimal verified subset (8 wilayas) shipped behind `GeoDataset`; full 58/69 wilayas pending `algeria-geo` import |
+| `GET /v1/communes` | Yes | Partial | `algeria-geo` not present in workspace — 19 verified communes shipped behind `GeoDataset` interface; missing communes explicitly marked in `/health` and `_dataset_meta` |
+| `GET /v1/centers` | Yes | Unverified | 9 stopdesk centers mapped to the 8 core wilayas; exact center IDs & fields need official response fixture |
+| `GET /v1/deliveryfees` | Yes | Partial | Query `from_wilaya_id`, `to_wilaya_id`, `wilaya_id`; exact per-commune fee breakdown (`retour_fee`, `cod_percentage`, `oversize_fee`) unverified |
+| `POST/GET/PATCH/DELETE /v1/parcels` | Yes | Partial | Public docs (bulk array or object create, tracking IDs `yal-XXXXXX`, `is_stopdesk`, `stopdesk_id`, `price`, `freeshipping`); exact validation errors & PATCH rules unverified |
+| `GET /v1/histories` | Yes | Unverified | Virtual-clock driven history log (`tracking`, `status`, `status_id`, `reason`, `center_name`, `date`); exact query filters & response envelope unverified |
+| Webhooks (parcel status updates) | Yes | Unverified | Unconfirmed whether Yalidine v1 pushes webhooks natively or relies on polling `histories`; simulated behind opt-in `webhook_url` / `DZ_YALIDINE_WEBHOOK_URL` |
 
 ---
 

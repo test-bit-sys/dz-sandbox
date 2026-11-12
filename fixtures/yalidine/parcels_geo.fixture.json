@@ -1,0 +1,65 @@
+{
+  "provider": "yalidine",
+  "verified": false,
+  "source": "UNVERIFIED: Public Yalidine v1 documentation overview (https://api.yalidine.app/v1/); exact error codes, pagination keys, and histories envelope need live sandbox fixture capture.",
+  "cases": [
+    {
+      "name": "list_wilayas",
+      "method": "GET",
+      "path": "/v1/wilayas",
+      "headers": {
+        "x-api-id": "test_api_id",
+        "x-api-token": "test_api_token"
+      },
+      "expectedStatus": 200,
+      "requiredKeys": ["has_more", "total_data", "data"]
+    },
+    {
+      "name": "get_delivery_fees",
+      "method": "GET",
+      "path": "/v1/deliveryfees?from_wilaya_id=16&to_wilaya_id=31",
+      "headers": {
+        "x-api-id": "test_api_id",
+        "x-api-token": "test_api_token"
+      },
+      "expectedStatus": 200,
+      "requiredKeys": ["from_wilaya_id", "to_wilaya_id", "home_fee", "stopdesk_fee", "fee"]
+    },
+    {
+      "name": "reject_missing_auth_headers",
+      "method": "GET",
+      "path": "/v1/parcels",
+      "headers": {},
+      "expectedStatus": 401,
+      "requiredKeys": ["error", "message"]
+    },
+    {
+      "name": "create_parcel_batch",
+      "method": "POST",
+      "path": "/v1/parcels",
+      "headers": {
+        "x-api-id": "test_api_id",
+        "x-api-token": "test_api_token"
+      },
+      "body": [
+        {
+          "order_id": "YLD-ORD-1",
+          "from_wilaya_name": "Alger",
+          "firstname": "Yacine",
+          "familyname": "Mansouri",
+          "contact_phone": "0550123456",
+          "address": "Cité 12 logements",
+          "to_wilaya_name": "Oran",
+          "commune_name": "Bir El Djir",
+          "is_stopdesk": false,
+          "stopdesk_id": 0,
+          "product_list": "Sneakers x1",
+          "price": 3500,
+          "weight": 1
+        }
+      ],
+      "expectedStatus": 201,
+      "requiredKeys": ["results", "data"]
+    }
+  ]
+}
