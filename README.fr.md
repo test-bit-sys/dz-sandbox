@@ -2,79 +2,48 @@
 
 **Testez ce qui échoue, pas seulement ce qui réussit.**
 
-Un sandbox local déterministe et 100 % hors ligne simulant les API algériennes de paiement et de livraison (**Chargily Pay v2**, **SATIM**, **Yalidine**) afin d'intégrer et de tester les parcours nominaux *et* les pannes sans compte marchand, identifiants réels ni connexion Internet.
+Un simulateur local déterministe et 100% hors ligne reproduisant les APIs de paiement et de livraison algériennes (**Chargily Pay v2**, **SATIM**, et **Yalidine**) pour permettre aux développeurs d'intégrer et de tester les parcours nominaux *et* les scénarios d'échec réels, sans compte marchand, sans identifiants réels et sans connexion Internet.
 
-**Langues :** [English](./README.md) | [العربية](./README.ar.md) | Français
+[![CI](https://github.com/[OWNER]/dz-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/[OWNER]/dz-sandbox/actions/workflows/ci.yml)
+[![Licence : MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org)
+[![Statut : Simulateur Non Officiel](https://img.shields.io/badge/status-unofficial_simulator-orange.svg)](#avertissement)
 
-> **Avertissement (Disclaimer) :** Non officiel. Non affilié à Chargily, SATIM ou Yalidine. Le comportement est simulé et peut différer de la production. Testez toujours sur le véritable sandbox du fournisseur avant la mise en production. Consultez [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md) pour le détail vérifié vs non vérifié.
+**Langues :** [English](./README.md) | [العربية (Arabic)](./README.ar.md) | **Français**
+
+<!-- TODO: Enregistrer et ajouter docs/assets/demo.gif (voir docs/DEMO_SCRIPT.md) -->
+
+> ### Avertissement
+> **Non officiel.** Non affilié à Chargily, SATIM ou Yalidine. Le comportement est simulé et peut différer de la production. Testez toujours contre le bac à sable officiel avant la mise en production. Consultez [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md) pour le périmètre vérifié versus non vérifié.
 
 ---
 
-## Démarrage rapide (une commande)
+## Démarrage rapide en 3 commandes
 
+### Option A : Docker Compose
 ```bash
 docker compose up
 ```
 
-Ou directement avec Node.js 20+ :
-
+### Option B : Node.js (20+)
 ```bash
 npm install
 npm run build
 npx dz-sandbox start
 ```
 
-| Service | URL par défaut | Rôle |
+### URLs locales des services
+
+| Service | URL par défaut | Usage |
 | --- | --- | --- |
-| API de contrôle & Dashboard (AR RTL par défaut) | `http://127.0.0.1:4000` | Interface web, OpenAPI (`/__control/openapi.json`), scénarios, horloge virtuelle, journal webhooks |
-| Mock Chargily Pay v2 *(SDK officiel vérifié)* | `http://127.0.0.1:4001/api/v2` | Checkouts, clients, produits, prix, liens de paiement, webhooks signés HMAC-SHA256, page locale |
-| Mock SATIM *(spécification non vérifiée)* | `http://127.0.0.1:4002/payment/rest` | Enregistrement -> page cartes factices -> confirmation -> remboursement |
-| Mock Yalidine *(géo complet / enveloppes partielles)* | `http://127.0.0.1:4003/v1` | Colis CRUD, validation 69 wilayas / 1 541 communes, tarifs, cycle de vie via horloge virtuelle |
+| **API de contrôle & Dashboard** | `http://127.0.0.1:4000` | Dashboard web (Arabe RTL par défaut, FR/EN), schéma OpenAPI (`/__control/openapi.json`), horloge virtuelle, sélecteur de scénario |
+| **Mock Chargily Pay v2** | `http://127.0.0.1:4001/api/v2` | Checkouts, clients, produits, prix, liens de paiement, page de paiement hébergée locale, webhooks signés HMAC-SHA256 |
+| **Mock SATIM E-Payment** | `http://127.0.0.1:4002/payment/rest` | Enregistrement (`register.do`), formulaire de fausses cartes (`4000000000000001`..`05`), confirmation, remboursements bornés |
+| **Mock Yalidine Express** | `http://127.0.0.1:4003/v1` | CRUD colis, calcul des frais, 69 wilayas / 1 541 communes, progression de cycle de vie via horloge virtuelle |
 
-> **Démonstration :** Lancez `./scripts/demo.ps1` (Windows) ou `./scripts/demo.sh` (Linux/macOS), ou suivez le storyboard [docs/DEMO_SCRIPT.md](./docs/DEMO_SCRIPT.md).
+### Rediriger le SDK officiel `@chargily/chargily-pay` vers le Sandbox
 
----
-
-## Tester une panne en 15 lignes
-
-```ts
-import { sandbox } from '@dz-sandbox/client';
-
-await sandbox.reset();
-await sandbox.scenario('chargily', 'duplicate_webhook');
-// Créez et validez un checkout sur http://127.0.0.1:4001/api/v2 ...
-const hooks = await sandbox.waitForWebhook({ provider: 'chargily', count: 2, timeoutMs: 5000 });
-// Vérifiez l'idempotence : la commande ne doit être validée qu'une seule fois !
-await sandbox.clock.advance('2h'); // Avance instantanément l'horloge virtuelle
-```
-
-Un client Python sans dépendance externe est inclus (`packages/python-client`) :
-
-```python
-from dz_sandbox import SandboxClient
-client = SandboxClient("http://127.0.0.1:4000")
-client.reset()
-client.scenario("chargily", "duplicate_webhook")
-hooks = client.wait_for_webhook(provider="chargily", count=2)
-```
-
----
-
-## État des spécifications par fournisseur
-
-| Fournisseur | Package | Maturité | Périmètre vérifié vs simulé | Configuration |
-| --- | --- | --- | --- | --- |
-| **Chargily Pay v2** | `@dz-sandbox/mock-chargily` | **Verified / Partial** | Clients/produits/prix/checkouts et signature HMAC-SHA256 vérifiés de bout en bout avec `@chargily/chargily-pay@2.1.0` ; frais et certains codes 4xx simulés | [chargily.spec.ts](./packages/mock-chargily/src/chargily.spec.ts) |
-| **SATIM** | `@dz-sandbox/mock-satim` | **Unverified** | Flux register -> cartes factices (`4000000000000001`..`05`) -> confirm/refund ; chemins bancaires, `jsonParams` et codes d'erreur à confirmer via PDF officiel | [satim.spec.ts](./packages/mock-satim/src/satim.spec.ts) |
-| **Yalidine Express** | `@dz-sandbox/mock-yalidine` | **Partial / Unverified** | 69 wilayas (`era: 48\|58\|69`) & 1 541 communes (AR/FR/EN, coordonnées exclues) importées depuis `algeria-geo` ; 9 centres et en-têtes 429 en attente de captures réelles | [yalidine.spec.ts](./packages/mock-yalidine/src/yalidine.spec.ts) |
-| **ZR Express** | `@dz-sandbox/mock-zrexpress` | **Scaffold (Non vérifié)** | Squelette de package et scénarios prêts ; renvoie `501 NOT_IMPLEMENTED_AWAITING_SPEC` en attente de documentation officielle ou de captures nettoyées | [zrexpress.spec.ts](./packages/mock-zrexpress/src/zrexpress.spec.ts) |
-| **Maystro Delivery** | `@dz-sandbox/mock-maystro` | **Scaffold (Non vérifié)** | Squelette de package et scénarios prêts ; renvoie `501 NOT_IMPLEMENTED_AWAITING_SPEC` en attente de documentation officielle ou de captures nettoyées | [maystro.spec.ts](./packages/mock-maystro/src/maystro.spec.ts) |
-
-Registre complet d'honnêteté : [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md).
-
----
-
-## Utilisation du SDK officiel `@chargily/chargily-pay`
+Le SDK officiel `@chargily/chargily-pay@2.1.0` verrouille son URL d'endpoint dans son constructeur. Redirigez-le proprement en une ligne grâce à `@dz-sandbox/client` :
 
 ```ts
 import { ChargilyClient } from '@chargily/chargily-pay';
@@ -88,22 +57,151 @@ const client = pointChargilyClientToSandbox(
 
 ---
 
-## CLI, scénarios & documentation
+## Testez les pannes en 15 lignes de code
+
+La plupart des intégrations ne testent que le paiement réussi. Avec `dz-sandbox`, vous pouvez reproduire de façon déterministe les doublons de webhooks, les courses critiques et les erreurs réseau :
+
+```ts
+import { createSandboxClient } from '@dz-sandbox/client';
+
+const sandbox = createSandboxClient({ controlUrl: 'http://127.0.0.1:4000' });
+
+// 1. Réinitialiser l'état
+await sandbox.reset();
+
+// 2. Activer le scénario d'envoi en double des webhooks
+await sandbox.scenario('chargily', 'duplicate_webhook');
+
+// 3. Créer & valider un paiement sur http://127.0.0.1:4001/api/v2 ...
+// 4. Attendre les 2 webhooks et vérifier l'idempotence de votre backend (traitement unique !)
+const webhooks = await sandbox.waitForWebhook({ provider: 'chargily', count: 2, timeoutMs: 5000 });
+
+// 5. Avancer l'horloge virtuelle sans attendre en temps réel
+await sandbox.clock.advance('2h');
+```
+
+Client Python inclus sans dépendance tierce (`packages/python-client`) :
+
+```python
+from dz_sandbox import SandboxClient
+
+client = SandboxClient("http://127.0.0.1:4000")
+client.reset()
+client.scenario("chargily", "duplicate_webhook")
+hooks = client.wait_for_webhook(provider="chargily", count=2)
+```
+
+---
+
+## Pourquoi dz-sandbox ?
+
+### Le problème
+- **Absence de bac à sable en libre-service :** Obtenir des comptes marchands de test en Algérie prend souvent plusieurs semaines de validation administrative.
+- **Chemins d'erreur non testés :** Beaucoup de boutiques en production traitent les commandes deux fois lors d'un retry de webhook, plantent face à des événements désordonnés, ou confondent DZD et centimes (`2500` DZD facturés `25` DZD sur SATIM).
+- **Déconnexions et instabilité :** Impossible de faire des pipelines CI rapides et hermétiques si l'on dépend d'endpoints externes distants.
+
+### Ce qui fait la différence
+- **Moteur de scénarios déclaratif :** Ordre de précédence déterministe : En-tête HTTP (`X-DZ-Scenario`) > Règle par ressource > Règle de séquence > Défaut du fournisseur > `success`.
+- **Horloge virtuelle contrôlable :** Avancez le temps (`+2h`, `+1d`) pour tester instantanément les relances de webhooks et le cycle de livraison des colis (`En préparation` &rarr; `Expédié` &rarr; `Livré` / `Retourné au centre`).
+- **100% hors ligne :** Zéro requête réseau externe, zéro télémétrie, zéro CDN.
+- **Dashboard bilingue RTL :** Interface web légère intégrée avec support natif de l'arabe (RTL par défaut), du français et de l'anglais.
+- **Enregistrement & rejeu sécurisé :** Proxy intégré (`dz-sandbox record`) qui masque automatiquement les clés d'API et les données personnelles avant de sauvegarder des fixtures de test.
+
+---
+
+## État des spécifications & honnêteté
+
+Chaque endpoint dans `dz-sandbox` est audité contre la documentation officielle et répertorié dans [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md).
+
+| Fournisseur | Package | Maturité | Périmètre vérifié vs simulé | Spécification |
+| --- | --- | --- | --- | --- |
+| **Chargily Pay v2** | `@dz-sandbox/mock-chargily` | **Vérifié / Partiel** | Clients, produits, prix, checkouts et signature HMAC-SHA256 vérifiés avec `@chargily/chargily-pay@2.1.0`. Calcul des frais et certaines erreurs 4xx simulés | [chargily.spec.ts](./packages/mock-chargily/src/chargily.spec.ts) |
+| **SATIM E-Payment** | `@dz-sandbox/mock-satim` | **Non vérifié (Simulé)** | Enregistrement (`register.do`), fausses cartes (`4000000000000001`..`05`), confirmation et remboursements simulés. Les codes bancaires précis nécessitent le guide technique officiel | [satim.spec.ts](./packages/mock-satim/src/satim.spec.ts) |
+| **Yalidine Express** | `@dz-sandbox/mock-yalidine` | **Partiel / Non vérifié** | 69 wilayas et 1 541 communes (AR/FR/EN, coordonnées exclues) importés du journal officiel. CRUD colis, frais et historiques simulés ; enveloppes de réponse en attente de captures réelles | [yalidine.spec.ts](./packages/mock-yalidine/src/yalidine.spec.ts) |
+| **ZR Express** | `@dz-sandbox/mock-zrexpress` | **Squelette (Non vérifié)** | Squelette de package et middleware prêts ; renvoie `501 NOT_IMPLEMENTED_AWAITING_SPEC` jusqu'à réception de spécifications officielles ou de captures nettoyées | [zrexpress.spec.ts](./packages/mock-zrexpress/src/zrexpress.spec.ts) |
+| **Maystro Delivery** | `@dz-sandbox/mock-maystro` | **Squelette (Non vérifié)** | Squelette de package et middleware prêts ; renvoie `501 NOT_IMPLEMENTED_AWAITING_SPEC` jusqu'à réception de spécifications officielles ou de captures nettoyées | [maystro.spec.ts](./packages/mock-maystro/src/maystro.spec.ts) |
+
+Registre complet : [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md)
+
+---
+
+## Scénarios de panne intégrés (27 scénarios)
+
+Basculez de scénario via en-tête HTTP (`X-DZ-Scenario: <nom>`), le dashboard, le CLI ou le client de test :
+
+| Catégorie | Exemples | Objectif |
+| --- | --- | --- |
+| **Pannes de paiement** | `declined`, `insufficient_funds`, `expired_card`, `invalid_card`, `amount_mismatch` | Vérifier que l'interface gère les rejets de carte et les incohérences de montant |
+| **Réseau & Passerelle** | `timeout`, `network_drop`, `gateway_500`, `rate_limited` | Vérifier la résistance aux lenteurs, déconnexions et limites de débit (`429`) |
+| **Webhooks** | `duplicate_webhook`, `delayed_webhook`, `out_of_order_webhooks`, `webhook_bad_signature`, `webhook_never_sent` | Tester l'idempotence des commandes et le rejet des signatures falsifiées |
+| **Livraison** | `lifecycle_fast`, `status_stuck`, `delivery_failed`, `returned_to_sender`, `phone_rejected`, `invalid_wilaya` | Tester les webhooks de suivi, les rejets de wilaya/commune et les retours au centre |
+
+Catalogue complet des scénarios : [docs/scenarios.md](./docs/scenarios.md)
+
+---
+
+## Dashboard & Référence CLI
+
+<!-- TODO: Ajouter capture d'écran docs/assets/dashboard.png -->
+
+Le dashboard est servi sur `http://127.0.0.1:4000` :
+- **Arabe RTL par défaut :** Bascule instantanée Arabe, Français, Anglais.
+- **Matrice des scénarios :** Visualisation de la couverture de test sur les 27 scénarios.
+- **Inspecteur de requêtes & webhooks :** Affichage avec masquage automatique des secrets.
+- **Aperçu des paiements hébergés :** Validation manuelle des checkouts dans un iframe local.
+
+### Commandes CLI
 
 ```bash
-npx dz-sandbox doctor                         # Vérifie Node, Docker, ports 4000-4003 et génère le .env
-npx dz-sandbox scenario set chargily declined # Active le scénario de carte refusée
-npx dz-sandbox logs --provider yalidine       # Inspecte les requêtes avec secrets masqués
-npx dz-sandbox export repro.json              # Exporte état + scénarios pour reproduire un bug
-npx dz-sandbox import repro.json              # Rejoue exactement un rapport d'incident
+npx dz-sandbox doctor                         # Diagnostic Node, ports 4000-4003 et génération .env
+npx dz-sandbox start                          # Démarrage des serveurs mocks et du dashboard
+npx dz-sandbox stop                           # Arrêt du démon
+npx dz-sandbox status                         # État de santé et scénarios actifs
+npx dz-sandbox reset                          # Réinitialisation de l'état et de l'horloge
+npx dz-sandbox scenario set chargily declined # Définir le scénario global pour un provider
+npx dz-sandbox logs --provider chargily       # Consulter les requêtes avec secrets masqués
+npx dz-sandbox export repro.json              # Exporter un bundle d'état pour reproduire un bug
+npx dz-sandbox import repro.json              # Rejouer un rapport de bug exporté
 npx dz-sandbox record --provider yalidine --upstream https://api.yalidine.app/v1 --out ./fixtures/yalidine/captured
-npx dz-sandbox fixtures validate ./fixtures   # Vérifie l'absence de secrets/PII non masqués
+npx dz-sandbox replay --provider yalidine --fixtures ./fixtures/yalidine/captured
+npx dz-sandbox fixtures validate ./fixtures   # Valider l'absence de secrets ou PII dans les fixtures
 npx dz-sandbox generate --openapi ./spec.yaml --name custom-courier # Générateur expérimental OpenAPI
 ```
 
-- **27 scénarios intégrés** (paiement, réseau, webhooks, livraison) — voir [docs/scenarios.md](./docs/scenarios.md).
-- Scénarios YAML personnalisés rechargés à chaud depuis `./scenarios/*.yaml`.
-- Stockage **mémoire** (`DZ_STORE=memory`) ou **SQLite** (`DZ_STORE=sqlite`) compatible Node 20+.
-- **Docs statiques hors ligne & E2E :** `npm run docs:build && npm run test:docs` (`dist-docs/`), `npm run test:e2e:browser` (Chromium Playwright).
-- **Exemples exécutables :** [examples/express-checkout](./examples/express-checkout) (handler naïf vs idempotent), [examples/nextjs-cod-store](./examples/nextjs-cod-store), [examples/test-with-vitest](./examples/test-with-vitest) via `npm run examples:smoke`.
-- Voir aussi : [docs/THREAT_MODEL.md](./docs/THREAT_MODEL.md) · [docs/CONTRIBUTING-FIXTURES.md](./docs/CONTRIBUTING-FIXTURES.md) · [9 guides d'erreurs courantes](./docs/guides/common-integration-bugs.md) · [docs/VERIFICATION.md](./docs/VERIFICATION.md) · [docs/CAPTURE_GUIDE.md](./docs/CAPTURE_GUIDE.md) · [CHANGELOG.md](./CHANGELOG.md) · [Licence MIT](./LICENSE)
+---
+
+## 9 Guides des erreurs courantes d'intégration
+
+1. [Webhooks dupliqués & double validation de commande](./docs/guides/bugs/01-duplicate-webhooks.md) (`duplicate_webhook`)
+2. [Webhooks désordonnés](./docs/guides/bugs/02-out-of-order-webhooks.md) (`out_of_order_webhooks`)
+3. [Absence de vérification de signature](./docs/guides/bugs/03-missing-signature-verification.md) (`webhook_bad_signature`)
+4. [Course critique et non-idempotence](./docs/guides/bugs/04-non-idempotent-fulfillment.md) (`delayed_webhook`)
+5. [Timeout réseau sans retry](./docs/guides/bugs/05-timeout-without-retry.md) (`timeout`, `gateway_500`)
+6. [Erreur d'unités : DZD vs Centimes](./docs/guides/bugs/06-amount-units-dzd-vs-centimes.md) (`amount_mismatch`)
+7. [Double débit lors de l'actualisation du navigateur](./docs/guides/bugs/07-double-charge-on-refresh.md) (`double_charge_attempt`)
+8. [Colis bloqués & polling infini](./docs/guides/bugs/08-parcel-stuck-states.md) (`status_stuck`, `lifecycle_fast`)
+9. [Commune/wilaya invalide et formats de téléphone](./docs/guides/bugs/09-invalid-wilaya-commune.md) (`invalid_wilaya`, `phone_rejected`)
+
+Index complet : [docs/guides/common-integration-bugs.md](./docs/guides/common-integration-bugs.md)
+
+---
+
+## Contribution
+
+Les contributions sont les bienvenues ! La façon la plus utile d'aider ne requiert aucun code :
+- **Contribuer des fixtures nettoyées :** Enregistrez des requêtes/réponses réelles avec `dz-sandbox record`, masquez les données sensibles, validez avec `dz-sandbox fixtures validate` et ouvrez un PR. Voir [docs/CAPTURE_GUIDE.md](./docs/CAPTURE_GUIDE.md) et [docs/CONTRIBUTING-FIXTURES.md](./docs/CONTRIBUTING-FIXTURES.md).
+- **Signaler un écart :** Vous constatez une différence avec le bac à sable réel ? Ouvrez un [Rapport de bug](https://github.com/[OWNER]/dz-sandbox/issues/new?template=bug_report.yml).
+- **Code & Scénarios :** Consultez [CONTRIBUTING.md](./CONTRIBUTING.md) et [docs/adding-a-provider.md](./docs/adding-a-provider.md).
+
+---
+
+## Sécurité
+
+- Écoute sur `127.0.0.1` par défaut ; exige `DZ_CONTROL_TOKEN` en cas d'exposition externe.
+- Protection stricte contre le SSRF sur plages privées et métadonnées (`DZ_WEBHOOK_ALLOWLIST`).
+- Masquage automatique des clés d'API, mots de passe, jetons porteurs et numéros de cartes dans les logs.
+- Pour signaler une vulnérabilité, consultez [SECURITY.md](./SECURITY.md) et [docs/THREAT_MODEL.md](./docs/THREAT_MODEL.md).
+
+## Licence
+
+MIT &copy; 2026 [YOUR NAME] et contributeurs dz-sandbox. Voir [LICENSE](./LICENSE).

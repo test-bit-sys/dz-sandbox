@@ -1,0 +1,69 @@
+name: Bug Report
+description: Report a bug, simulator discrepancy, or unexpected behavior in dz-sandbox
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please check [docs/SPEC_STATUS.md](https://github.com/[OWNER]/dz-sandbox/blob/main/docs/SPEC_STATUS.md) and [docs/guides/common-integration-bugs.md](https://github.com/[OWNER]/dz-sandbox/blob/main/docs/guides/common-integration-bugs.md) first.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component or Mock Provider
+      options:
+        - "Chargily Pay v2 (@dz-sandbox/mock-chargily)"
+        - "SATIM E-Payment (@dz-sandbox/mock-satim)"
+        - "Yalidine Express (@dz-sandbox/mock-yalidine)"
+        - "ZR Express (@dz-sandbox/mock-zrexpress)"
+        - "Maystro Delivery (@dz-sandbox/mock-maystro)"
+        - "Control API & Dashboard (@dz-sandbox/control)"
+        - "CLI (dz-sandbox)"
+        - "Test Clients (@dz-sandbox/client, python-client)"
+        - "Core Scenario Engine (@dz-sandbox/core)"
+        - "Other"
+    validations:
+      required: true
+  - type: input
+    id: scenario
+    attributes:
+      label: Active Scenario (if applicable)
+      placeholder: e.g., duplicate_webhook, rate_limited, status_stuck
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of the Bug
+      description: What happened? What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to Reproduce
+      description: Provide minimal reproducible code, curl commands, or an exported bundle (`dz-sandbox export`).
+      placeholder: |
+        1. Start sandbox: `npx dz-sandbox start`
+        2. Set scenario: `npx dz-sandbox scenario set chargily duplicate_webhook`
+        3. Make request: ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Info
+      description: Node version, OS, browser (if dashboard issue), Docker or native.
+      placeholder: |
+        - OS: Windows 11 / Ubuntu 24.04 / macOS 15
+        - Node.js version: 20.x / 22.x
+        - dz-sandbox version: 0.1.0
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confidentiality Check
+      options:
+        - label: I confirm that this report contains **zero** real merchant API keys, live card numbers, passwords, or customer PII.
+          required: true

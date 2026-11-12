@@ -1,6 +1,6 @@
 # Release Checklist (`dz-sandbox`)
 
-Follow these steps before tagging a release (`vX.Y.Z`):
+Follow these steps before tagging and publishing a release (`vX.Y.Z`):
 
 ## 1. Truthfulness & Fixture Audit
 - [x] Confirm `docs/SPEC_STATUS.md` matches the exact verification state of every endpoint and fixture.
@@ -21,11 +21,21 @@ Follow these steps before tagging a release (`vX.Y.Z`):
 - [x] `node packages/cli/dist/cli.js fixtures validate fixtures`
 - [x] `npm pack` across all 9 workspace packages verifies zero `.ts` sources or test files leak into tarballs, every tarball includes `dist/`, `LICENSE`, and `README.md`, and clean temp-dir offline install + `npx dz-sandbox doctor` + `@dz-sandbox/client` smoke pass.
 
-## 3. Manual Steps Required From Maintainer Before Publishing
-- [ ] **Resolve or accept `npm audit` advisory on `zod@3`:** `npm audit --omit=dev --audit-level=high` reports `GHSA-mrhx-c7xc-m3w5` (`zod <4.6.6`); decide whether to stay on `zod@^3.24.2` for v0.1.0 or plan a breaking `zod@4` upgrade for v0.2.0.
+## 3. GitHub Repository Settings (Maintainer Manual Actions)
+- [ ] **Configure repository placeholders:** Replace `[OWNER]` and `[YOUR NAME]` across `package.json`, `.github/CODEOWNERS`, `LICENSE`, `SUPPORT.md`, and README files with your real GitHub username and name.
+- [ ] **Set repository description & topics:**
+  - Description: *Local deterministic sandbox simulating Algerian payment and delivery APIs (Chargily Pay v2, SATIM, Yalidine)*
+  - Topics: `algeria`, `mock-server`, `sandbox`, `payments`, `webhooks`, `delivery`, `chargily`, `satim`, `yalidine`, `typescript`, `testing`, `rtl`
+- [ ] **Enable Private Vulnerability Reporting:** Go to `Settings -> Security -> Code security and analysis` and enable *Private vulnerability reporting*.
+- [ ] **Enable GitHub Discussions:** Go to `Settings -> General -> Features` and check *Discussions*.
+- [ ] **Enable Dependabot Alerts & Security Updates:** Under `Settings -> Security -> Code security and analysis`.
+- [ ] **Configure Branch Protection on `main`:** Go to `Settings -> Branches` and add a rule for `main` requiring pull request reviews, passing CI status checks (`verify`, `docker-smoke`), and disallowing force pushes.
+
+## 4. Manual Publishing Steps
+- [ ] **Resolve or accept `npm audit` advisory on `zod@3`:** `npm audit --omit=dev --audit-level=high` reports `GHSA-mrhx-c7xc-m3w5` (`zod <4.6.6`); decide whether to stay on `zod@^3.24.2` for v0.1.0 or plan a breaking `zod@4` upgrade for v0.2.0 (see `docs/DECISIONS.md`).
 - [ ] **Run Docker Compose smoke check on a machine/CI with Docker:** verify `docker compose up --build` and `.github/workflows/ci.yml` `docker-smoke` job pass cleanly on Linux.
 - [ ] **Capture real provider fixtures (optional, recommended before v0.2.0):** follow [docs/CAPTURE_GUIDE.md](./CAPTURE_GUIDE.md) + `node scripts/redact-fixture.mjs` to add real redacted sandbox fixtures for Chargily, SATIM, and Yalidine.
-- [ ] **Record demo visual:** follow [docs/DEMO_SCRIPT.md](./DEMO_SCRIPT.md) to capture `docs/assets/demo.gif` and replace the README placeholder.
+- [ ] **Record demo visual:** follow [docs/DEMO_SCRIPT.md](./DEMO_SCRIPT.md) to capture `docs/assets/demo.gif` and uncomment the README placeholder.
 - [ ] **npm publish auth:** run `npm login` (with 2FA) and publish packages (`npm publish --workspaces --access public`), or configure `NPM_TOKEN` in GitHub Secrets for `.github/workflows/release.yml`.
 - [ ] **Tag & push release:** run `git tag v0.1.0 && git push origin v0.1.0` after final approval.
-- [ ] **Post-publish GitHub configuration:** make the GHCR container package (`ghcr.io/<owner>/dz-sandbox`) public under Package Settings, enable GitHub Discussions, and seed initial issues from `docs/issues-seed/`.
+- [ ] **Post-publish GitHub configuration:** make the GHCR container package (`ghcr.io/<owner>/dz-sandbox`) public under Package Settings, and seed initial issues from `docs/issues-seed/`.

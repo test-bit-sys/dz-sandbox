@@ -1,22 +1,42 @@
 # dz-sandbox
 
+<div dir="rtl">
+
 **اختبر ما يفشل، لا ما ينجح فقط.**
 
-بيئة محلية حتمية تعمل دون إنترنت لمحاكاة واجهات الدفع والتوصيل الجزائرية (**Chargily Pay v2**، **SATIM**، **Yalidine**) حتى يتمكن المطورون من اختبار مسارات الدفع والتوصيل وحالات الفشل محلياً بدون حساب تاجر أو مفاتيح حقيقية أو اتصال بالإنترنت.
+بيئة محاكاة محلية، حتمية وتعمل بالكامل **دون إنترنت** لبوابات الدفع والتوصيل في الجزائر (**Chargily Pay v2**، **SATIM**، **Yalidine**) لتمكين المطورين من اختبار مسارات النجاح وسيناريوهات الأعطال الحقيقية محلياً دون الحاجة إلى حسابات تجارية، أو بطاقات حقيقية، أو اتصال بالإنترنت.
 
-**اللغات:** [English](./README.md) | العربية | [Français (French)](./README.fr.md)
+</div>
 
-> **إخلاء مسؤولية (Disclaimer):** مشروع غير رسمي ولا يتبع لـ Chargily أو SATIM أو Yalidine. السلوك مُحاكى وقد يختلف عن بيئة الإنتاج. اختبر دائماً على البيئة التجريبية الرسمية (Real Sandbox) قبل الإطلاق الفعلي. راجع [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md) لمعرفة ما تم التحقق منه مقابل غير المؤكد.
+[![CI](https://github.com/[OWNER]/dz-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/[OWNER]/dz-sandbox/actions/workflows/ci.yml)
+[![الترخيص: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org)
+[![الحالة: محاكي غير رسمي](https://img.shields.io/badge/status-unofficial_simulator-orange.svg)](#إخلاء-مسؤولية)
+
+**اللغات:** [English](./README.md) | **العربية** | [Français](./README.fr.md)
+
+<!-- TODO: تسجيل وإضافة docs/assets/demo.gif (راجع docs/DEMO_SCRIPT.md) -->
+
+> ### إخلاء مسؤولية
+> **مشروع غير رسمي.** ليس تابعاً لشركات Chargily أو SATIM أو Yalidine. السلوك يحاكي المنطق البرمجي وقد يختلف عن بيئة الإنتاج الحقيقية. احرص دائماً على الاختبار ضد بيئات الاختبار الرسمية قبل الإطلاق النهائي. راجع [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md) لتفاصيل ما تم التحقق منه وما زال قيد المحاكاة.
 
 ---
 
-## التشغيل السريع بأمر واحد
+<div dir="rtl">
+
+## التشغيل السريع في 3 أوامر
+
+### الخيار 1: عبر Docker Compose
+</div>
 
 ```bash
 docker compose up
 ```
 
-أو مباشرة عبر Node.js 20+:
+<div dir="rtl">
+
+### الخيار 2: عبر Node.js (20+)
+</div>
 
 ```bash
 npm install
@@ -24,57 +44,22 @@ npm run build
 npx dz-sandbox start
 ```
 
-| الخدمة | العنوان الافتراضي | الوظيفة |
+<div dir="rtl">
+
+### الروابط المحلية للخدمات
+</div>
+
+| الخدمة | الرابط الافتراضي | الوظيفة |
 | --- | --- | --- |
-| لوحة التحكم وواجهة التحكم (عربية RTL افتراضياً) | `http://127.0.0.1:4000` | واجهة ويب، توثيق OpenAPI (`/__control/openapi.json`)، السيناريوهات، الساعة الافتراضية، سجل الـ Webhooks |
-| محاكي Chargily Pay v2 *(متوافق مع الحزمة الرسمية)* | `http://127.0.0.1:4001/api/v2` | Checkouts، العملاء، المنتجات، الأسعار، روابط الدفع، توقيع HMAC-SHA256، صفحة الدفع المحلية |
-| محاكي SATIM *(مواصفات غير مؤكدة رسمياً)* | `http://127.0.0.1:4002/payment/rest` | تسجيل الطلب -> صفحة بطاقات اختبار وهمية -> تأكيد الدفع -> الاسترجاع |
-| محاكي Yalidine *(بيانات ولايات كاملة / استجابات جزئية)* | `http://127.0.0.1:4003/v1` | الطرود، التحقق من 69 ولاية و1,541 بلدية، تسعيرة التوصيل، دورة حياة الشحنة بالساعة الافتراضية |
+| **واجهة التحكم ولوحة البيانات** | `http://127.0.0.1:4000` | لوحة تحكم باللغة العربية (RTL افتراضياً) مع دعم الإنجليزية والفرنسية، مخطط OpenAPI، ساعة افتراضية، ومبدل السيناريوهات |
+| **محاكي Chargily Pay v2** | `http://127.0.0.1:4001/api/v2` | عمليات الدفع، العملاء، المنتجات، الأسعار، روابط الدفع، صفحة الدفع المستضافة محلياً، وwebhooks موقعة بـ HMAC-SHA256 |
+| **محاكي SATIM للدفع الإلكتروني** | `http://127.0.0.1:4002/payment/rest` | تسجيل العملية (`register.do`)، صفحة إدخال البطاقات التجريبية (`4000000000000001`..`05`)، التأكيد، والاسترجاع المالي المقيد |
+| **محاكي Yalidine للتوصيل** | `http://127.0.0.1:4003/v1` | إدارة الطرود، حساب تكاليف التوصيل، 69 ولاية و1,541 بلدية، وتتبع دورة حياة الطرود عبر الساعة الافتراضية |
 
-> **تجربة عملية سريعة:** شغّل `./scripts/demo.ps1` (على Windows) أو `./scripts/demo.sh` (على Linux/macOS)، أو راجع سيناريو العرض [docs/DEMO_SCRIPT.md](./docs/DEMO_SCRIPT.md).
+<div dir="rtl">
 
----
-
-## اختبار الأعطال في 15 سطراً
-
-```ts
-import { sandbox } from '@dz-sandbox/client';
-
-await sandbox.reset();
-await sandbox.scenario('chargily', 'duplicate_webhook');
-// أنشئ عملية دفع وأكملها محلياً عبر http://127.0.0.1:4001/api/v2 ...
-const hooks = await sandbox.waitForWebhook({ provider: 'chargily', count: 2, timeoutMs: 5000 });
-// تأكد أن خادمك يعالج الطلب مرة واحدة فقط (Idempotency) رغم وصول الـ Webhook مرتين!
-await sandbox.clock.advance('2h'); // تقديم الساعة الافتراضية فوراً لاختبار التأخير ودورة التوصيل
-```
-
-عميل Python متاح أيضاً بدون أي مكتبات خارجية (`packages/python-client`):
-
-```python
-from dz_sandbox import SandboxClient
-client = SandboxClient("http://127.0.0.1:4000")
-client.reset()
-client.scenario("chargily", "duplicate_webhook")
-hooks = client.wait_for_webhook(provider="chargily", count=2)
-```
-
----
-
-## حالة دعم المزودين وجدول الصدق
-
-| المزود | الحزمة | حالة التحقق | النطاق المؤكد مقابل المُحاكى | الإعدادات والمواصفات |
-| --- | --- | --- | --- | --- |
-| **Chargily Pay v2** | `@dz-sandbox/mock-chargily` | **Verified / Partial** | مسارات العملاء/المنتجات/الأسعار/الـ Checkout وتوقيع HMAC-SHA256 مؤكدة عبر الحزمة الرسمية `@chargily/chargily-pay@2.1.0`؛ معادلة الرسوم وبعض أخطاء 4xx مُحاكاة | [chargily.spec.ts](./packages/mock-chargily/src/chargily.spec.ts) |
-| **SATIM** | `@dz-sandbox/mock-satim` | **Unverified** | تدفق التسجيل -> صفحة البطاقات الوهمية (`4000000000000001`..`05`) -> التأكيد/الاسترجاع؛ المسارات البنكية والأكواد التفصيلية تنتظر الدليل الرسمي | [satim.spec.ts](./packages/mock-satim/src/satim.spec.ts) |
-| **Yalidine Express** | `@dz-sandbox/mock-yalidine` | **Partial / Unverified** | استيراد 69 ولاية (`era: 48\|58\|69`) و1,541 بلدية (AR/FR/EN دون الإحداثيات) من `algeria-geo`؛ 9 مكاتب Stopdesk وترويسات المعدل تنتظر عينات حقيقية | [yalidine.spec.ts](./packages/mock-yalidine/src/yalidine.spec.ts) |
-| **ZR Express** | `@dz-sandbox/mock-zrexpress` | **هيكل أولي (غير مؤكد)** | هيكل الحزمة ومحرك السيناريوهات جاهزان؛ يرجع `501 NOT_IMPLEMENTED_AWAITING_SPEC` حتى توفر وثائق رسمية أو عينات حقيقية منقحة | [zrexpress.spec.ts](./packages/mock-zrexpress/src/zrexpress.spec.ts) |
-| **Maystro Delivery** | `@dz-sandbox/mock-maystro` | **هيكل أولي (غير مؤكد)** | هيكل الحزمة ومحرك السيناريوهات جاهزان؛ يرجع `501 NOT_IMPLEMENTED_AWAITING_SPEC` حتى توفر وثائق رسمية أو عينات حقيقية منقحة | [maystro.spec.ts](./packages/mock-maystro/src/maystro.spec.ts) |
-
-السجل الكامل لحالة المواصفات: [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md).
-
----
-
-## الربط مع الحزمة الرسمية `@chargily/chargily-pay`
+### توجيه الحزمة الرسمية `@chargily/chargily-pay` إلى المحاكي المحلي
+</div>
 
 ```ts
 import { ChargilyClient } from '@chargily/chargily-pay';
@@ -88,22 +73,184 @@ const client = pointChargilyClientToSandbox(
 
 ---
 
-## سطر الأوامر والمزايا والوثائق
+<div dir="rtl">
 
-```bash
-npx dz-sandbox doctor                         # فحص Node و Docker والمنافذ 4000-4003 وطباعة .env
-npx dz-sandbox scenario set chargily declined # تفعيل سيناريو رفض الدفع
-npx dz-sandbox logs --provider yalidine       # عرض الطلبات مع إخفاء المفاتيح الحساسة
-npx dz-sandbox export repro.json              # تصدير الحالة والسيناريوهات لمشاركة نفس الخطأ
-npx dz-sandbox import repro.json              # إعادة تشغيل نفس التقرير محلياً
-npx dz-sandbox record --provider yalidine --upstream https://api.yalidine.app/v1 --out ./fixtures/yalidine/captured
-npx dz-sandbox fixtures validate ./fixtures   # التحقق من خلو البيانات من المفاتيح الحساسة أو PII
-npx dz-sandbox generate --openapi ./spec.yaml --name custom-courier # توليد مزود تجريبي من OpenAPI
+## اختبر ما يفشل في 15 سطراً برمجياً
+
+معظم عمليات التكامل تختبر فقط حالة الدفع الناجح. مع `dz-sandbox`، يمكنك اختبار الأعطال الحقيقية بشكل حتمي:
+</div>
+
+```ts
+import { createSandboxClient } from '@dz-sandbox/client';
+
+const sandbox = createSandboxClient({ controlUrl: 'http://127.0.0.1:4000' });
+
+// 1. إعادة ضبط الحالة إلى نقطة البداية
+await sandbox.reset();
+
+// 2. تفعيل سيناريو تكرار إرسال الـ webhook
+await sandbox.scenario('chargily', 'duplicate_webhook');
+
+// 3. إنشاء وإتمام عملية دفع تجريبية ...
+// 4. انتظار وصول الإشعارين والتأكد من معالجة الطلب مرة واحدة فقط (Idempotency)
+const webhooks = await sandbox.waitForWebhook({ provider: 'chargily', count: 2, timeoutMs: 5000 });
+
+// 5. تقديم الساعة الافتراضية لتفعيل أحداث التوصيل المؤجلة دون انتظار حقيقي
+await sandbox.clock.advance('2h');
 ```
 
-- **27 سيناريو مدمج** لأعطال الدفع والشبكة والـ Webhooks والتوصيل — راجع [docs/scenarios.md](./docs/scenarios.md).
-- دعم ملفات YAML المخصصة في `./scenarios/*.yaml` مع إعادة التحميل الفوري.
-- لوحة تحكم تدعم **العربية (RTL افتراضياً) والفرنسية والإنجليزية**، وتخزين بالذاكرة (`DZ_STORE=memory`) أو SQLite (`DZ_STORE=sqlite`).
-- **توثيق ثابت يعمل دون إنترنت واختبار متصفح E2E:** `npm run docs:build && npm run test:docs` (`dist-docs/`)، `npm run test:e2e:browser`.
-- **الأمثلة القابلة للتشغيل:** [examples/express-checkout](./examples/express-checkout) (يعرض خطأ تكرار الـ Webhook مقابل الحل السليم)، و [examples/nextjs-cod-store](./examples/nextjs-cod-store)، و [examples/test-with-vitest](./examples/test-with-vitest) عبر الأمر `npm run examples:smoke`.
-- راجع أيضاً: [docs/THREAT_MODEL.md](./docs/THREAT_MODEL.md) · [docs/CONTRIBUTING-FIXTURES.md](./docs/CONTRIBUTING-FIXTURES.md) · [أدلة أخطاء التكامل الشائعة (9)](./docs/guides/common-integration-bugs.md) · [docs/VERIFICATION.md](./docs/VERIFICATION.md) · [docs/CAPTURE_GUIDE.md](./docs/CAPTURE_GUIDE.md) · [CHANGELOG.md](./CHANGELOG.md) · [MIT License](./LICENSE)
+<div dir="rtl">
+
+يتوفر أيضاً عميل Python خفيف دون أي مكتبات خارجية (`packages/python-client`):
+</div>
+
+```python
+from dz_sandbox import SandboxClient
+
+client = SandboxClient("http://127.0.0.1:4000")
+client.reset()
+client.scenario("chargily", "duplicate_webhook")
+hooks = client.wait_for_webhook(provider="chargily", count=2)
+```
+
+---
+
+<div dir="rtl">
+
+## لماذا dz-sandbox؟
+
+### المشكلة في بيئات التطوير الحالية
+- **صعوبة الحصول على حسابات تجريبية:** قد يتطلب فتح حساب تاجر تجريبي لدى البوابات الجزائرية أسابيع من الإجراءات الإدارية.
+- **أخطاء الإنتاج غير المكتشفة:** العديد من المتاجر الإلكترونية تقع في أخطاء تكرار شحن الطلب عند وصول الإشعار مرتين، أو تعطل النظام بسبب وصول الإشعارات بترتيب غير صحيح، أو الخلط بين مبالغ الدينار والسنتيم (خصم `25` دج بدلاً من `2500` دج في SATIM).
+- **الحاجة لبيئة تعمل دون إنترنت:** الاختبار السريع داخل بيئات CI المغلقة أو أثناء التنقل مستحيل عند الاعتماد على خوادم خارجية.
+
+### ما الذي يقدمه هذا المشروع؟
+- **محرك سيناريوهات حتمي:** قواعد واضحة للأولوية: ترويسة الطلب (`X-DZ-Scenario`) > قاعدة المورد المحدد > قواعد التسلسل > الافتراضي للبوابة > `success`.
+- **ساعة افتراضية للتحكم في الزمن:** تقديم الوقت (`+2h` أو `+1d`) لاختبار إعادة محاولات الـ webhooks ودورات حياة الطرود متعددة الأيام لحظياً.
+- **يعمل دون إنترنت بنسبة 100%:** لا اتصالات خارجية، لا أدوات تتبع، ولا اعتمادات على شبكات CDN.
+- **لوحة تحكم عربية بالكامل (RTL):** واجهة ويب مدمجة وخفيفة تدعم العربية كلغة افتراضية مع الفرنسية والإنجليزية.
+- **تسجيل وإعادة تشغيل آمنة:** أداة مدمجة (`dz-sandbox record`) تقوم بإخفاء المفاتيح الحساسة وبيانات العملاء الشخصية تلقائياً قبل حفظ العينات.
+
+</div>
+
+---
+
+<div dir="rtl">
+
+## حالة المواصفات ومستوى التحقق
+
+كل مسار في `dz-sandbox` يخضع للتوثيق المكتوب في [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md). لا نبتكر مسارات غير مؤكدة دون توضيح ذلك بصدق.
+</div>
+
+| المزود | الحزمة | الجاهزية | نطاق التحقق والمحاكاة | ملف الإعدادات |
+| --- | --- | --- | --- | --- |
+| **Chargily Pay v2** | `@dz-sandbox/mock-chargily` | **مؤكد / جزئي** | دورة حياة العملاء والمنتجات والدفع وتوقيع HMAC-SHA256 مؤكدة مع الحزمة الرسمية `@chargily/chargily-pay@2.1.0`. صيغة الرسوم وبعض أخطاء 4xx تحت المحاكاة | [chargily.spec.ts](./packages/mock-chargily/src/chargily.spec.ts) |
+| **SATIM للدفع** | `@dz-sandbox/mock-satim` | **غير مؤكد (محاكاة)** | تسجيل العملية، صفحة البطاقات الوهمية (`4000000000000001`..`05`)، التأكيد والاسترجاع. المسارات الدقيقة للبنوك تتطلب الكتيب التقني الرسمي | [satim.spec.ts](./packages/mock-satim/src/satim.spec.ts) |
+| **Yalidine للتوصيل** | `@dz-sandbox/mock-yalidine` | **جزئي / غير مؤكد** | 69 ولاية و1,541 بلدية مستوردة من الجريدة الرسمية. إنشاء وتحديث الطرود وحساب الرسوم تحت المحاكاة؛ بانتظار عينات حقيقية | [yalidine.spec.ts](./packages/mock-yalidine/src/yalidine.spec.ts) |
+| **ZR Express** | `@dz-sandbox/mock-zrexpress` | **هيكل أولي** | الحزمة جاهزة وترجع `501 NOT_IMPLEMENTED_AWAITING_SPEC` حتى تتوفر وثائق رسمية أو عينات مسجلة ومنقحة | [zrexpress.spec.ts](./packages/mock-zrexpress/src/zrexpress.spec.ts) |
+| **Maystro Delivery** | `@dz-sandbox/mock-maystro` | **هيكل أولي** | الحزمة جاهزة وترجع `501 NOT_IMPLEMENTED_AWAITING_SPEC` حتى تتوفر وثائق رسمية أو عينات مسجلة ومنقحة | [maystro.spec.ts](./packages/mock-maystro/src/maystro.spec.ts) |
+
+<div dir="rtl">
+
+السجل الكامل للتحقق: [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md)
+
+</div>
+
+---
+
+<div dir="rtl">
+
+## سيناريوهات الأعطال المدمجة (27 سيناريو)
+
+يمكن التبديل الفوري بين السيناريوهات عبر الترويسة (`X-DZ-Scenario: <name>`) أو لوحة التحكم أو سطر الأوامر أو عميل الاختبار:
+</div>
+
+| التصنيف | أمثلة | الغرض |
+| --- | --- | --- |
+| **أعطال الدفع** | `declined`, `insufficient_funds`, `expired_card`, `invalid_card`, `amount_mismatch` | اختبار معالجة الواجهة لرفض البطاقات، ونقص الرصيد، واختلاف العملة |
+| **الشبكة والبوابة** | `timeout`, `network_drop`, `gateway_500`, `rate_limited` | اختبار مرونة النظام في حالات الانقطاع، والبطء، وتجاوز حدود الطلبات (`429`) |
+| **إشعارات الـ Webhooks** | `duplicate_webhook`, `delayed_webhook`, `out_of_order_webhooks`, `webhook_bad_signature`, `webhook_never_sent` | اختبار معالجة الطلبات المتكررة، والتأكد من رفض التوقيعات المزورة |
+| **دورة حياة التوصيل** | `lifecycle_fast`, `status_stuck`, `delivery_failed`, `returned_to_sender`, `phone_rejected`, `invalid_wilaya` | اختبار إشعارات التتبع، وتوقف الطرود، والتحقق من صحة الولاية والبلدية ورقم الهاتف |
+
+<div dir="rtl">
+
+دليل السيناريوهات الكامل: [docs/scenarios.md](./docs/scenarios.md)
+
+</div>
+
+---
+
+<div dir="rtl">
+
+## لوحة التحكم وسطر الأوامر (CLI)
+
+<!-- TODO: إضافة لقطة شاشة للوحة التحكم docs/assets/dashboard.png -->
+
+لوحة التحكم متاحة محلياً عبر `http://127.0.0.1:4000`:
+- **عربية بالكامل (RTL افتراضياً):** تبديل سلس وفوري بين العربية والفرنسية والإنجليزية.
+- **مصفوفة السيناريوهات:** فحص التغطية التجريبية لجميع السيناريوهات الـ 27 لكل مزود.
+- **مفتش الطلبات وإشعارات الـ Webhooks:** مراقبة فورية للترويسات والبيانات مع إخفاء المفاتيح الحساسة.
+- **معاينة الدفع المستضاف:** إتمام عمليات الدفع الوهمية مباشرة من خلال إطار مضمن (iframe).
+
+### أوامر CLI
+</div>
+
+```bash
+npx dz-sandbox doctor                         # فحص بيئة التشغيل والمنافذ وتوليد إعدادات .env
+npx dz-sandbox start                          # تشغيل الخوادم ولوحة التحكم
+npx dz-sandbox stop                           # إيقاف الخوادم
+npx dz-sandbox status                         # عرض حالة الخدمات والسيناريوهات النشطة
+npx dz-sandbox reset                          # إعادة ضبط البيانات والساعة الافتراضية
+npx dz-sandbox scenario set chargily declined # تفعيل سيناريو رفض الدفع
+npx dz-sandbox logs --provider chargily       # عرض سجل الطلبات مع إخفاء الأسرار
+npx dz-sandbox export repro.json              # تصدير حالة المحاكي لإعادة إنتاج مشكلة برمجية
+npx dz-sandbox import repro.json              # استيراد حزمة حالة وتشغيلها محلياً
+npx dz-sandbox record --provider yalidine --upstream https://api.yalidine.app/v1 --out ./fixtures/yalidine/captured
+npx dz-sandbox replay --provider yalidine --fixtures ./fixtures/yalidine/captured
+npx dz-sandbox fixtures validate ./fixtures   # التأكد من خلو العينات من البيانات الحساسة
+npx dz-sandbox generate --openapi ./spec.yaml --name custom-courier # توليد تجريبي لمزود جديد من OpenAPI
+```
+
+---
+
+<div dir="rtl">
+
+## 9 أدلة لأشهر أخطاء التكامل وحلولها
+
+أدلة مفصلة تشرح أسباب وأعراض وطرق إصلاح أشهر الأعطال في بوابات الدفع والتوصيل في الجزائر:
+
+1. [إشعارات الـ Webhook المكررة وشحن الطلب مرتين](./docs/guides/bugs/01-duplicate-webhooks.md) (`duplicate_webhook`)
+2. [وصول إشعارات الـ Webhook بترتيب غير متسلسل](./docs/guides/bugs/02-out-of-order-webhooks.md) (`out_of_order_webhooks`)
+3. [إهمال التحقق من التوقيع الرقمي للـ Webhook](./docs/guides/bugs/03-missing-signature-verification.md) (`webhook_bad_signature`)
+4. [معالجة الطلبات غير المعزولة والتسابق المتزامن](./docs/guides/bugs/04-non-idempotent-fulfillment.md) (`delayed_webhook`)
+5. [انقطاع الاتصال دون إعادة المحاولة أو مفتاح Idempotency](./docs/guides/bugs/05-timeout-without-retry.md) (`timeout`, `gateway_500`)
+6. [الخلط بين وحدات الدينار والسنتيم](./docs/guides/bugs/06-amount-units-dzd-vs-centimes.md) (`amount_mismatch`)
+7. [تكرار الخصم عند تحديث المتصفح أو زر الرجوع](./docs/guides/bugs/07-double-charge-on-refresh.md) (`double_charge_attempt`)
+8. [تعلق حالة الطرد والتكرار اللانهائي للاستعلام](./docs/guides/bugs/08-parcel-stuck-states.md) (`status_stuck`, `lifecycle_fast`)
+9. [أسماء الولايات والبلديات غير المطابقة وتنسيقات الهواتف](./docs/guides/bugs/09-invalid-wilaya-commune.md) (`invalid_wilaya`, `phone_rejected`)
+
+الفهرس الكامل للأدلة: [docs/guides/common-integration-bugs.md](./docs/guides/common-integration-bugs.md)
+
+---
+
+## المساهمة في المشروع
+
+نرحب بمساهمات الجميع! وأفضل طريقة للمساهمة لا تتطلب بالضرورة كتابة كود:
+- **المساهمة بعينات مسجلة ومنقحة:** سجل تبادلات HTTP حقيقية في بيئات الاختبار باستخدام `dz-sandbox record`، احذف البيانات الحساسة، تأكد عبر `dz-sandbox fixtures validate` وافتح Pull Request. راجع [docs/CAPTURE_GUIDE.md](./docs/CAPTURE_GUIDE.md) و[docs/CONTRIBUTING-FIXTURES.md](./docs/CONTRIBUTING-FIXTURES.md).
+- **الإبلاغ عن أي اختلاف في السلوك:** إذا لاحظت اختلافاً بين المحاكي وبيئة الاختبار الحقيقية، افتح [تقرير خطأ](https://github.com/[OWNER]/dz-sandbox/issues/new?template=bug_report.yml).
+- **التطوير وإضافة السيناريوهات:** راجع [CONTRIBUTING.md](./CONTRIBUTING.md) و[docs/adding-a-provider.md](./docs/adding-a-provider.md).
+
+---
+
+## الأمان والخصوصية
+
+- يربط المحاكي الخوادم تلقائياً بـ `127.0.0.1` ويطلب رمز حماية `DZ_CONTROL_TOKEN` في حال ربطه بشبكة خارجية.
+- حماية مشددة ضد ثغرات SSRF على النطاقات الخاصة وعناوين بيانات التعريف السحابية.
+- إخفاء آلي وتلقائي للمفاتيح وكلمات المرور وبيانات البطاقات داخل سجلات الطلبات.
+- للإبلاغ عن الثغرات الأمنية بطريقة سرية، راجع [SECURITY.md](./SECURITY.md) و[docs/THREAT_MODEL.md](./docs/THREAT_MODEL.md).
+
+## الترخيص
+
+مرخص تحت رخصة MIT &copy; 2026 [YOUR NAME] ومساهمي dz-sandbox. راجع [LICENSE](./LICENSE).
+
+</div>

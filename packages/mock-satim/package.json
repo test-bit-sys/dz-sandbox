@@ -29,5 +29,25 @@
     "@fastify/formbody": "^8.0.2",
     "fastify": "^5.2.1",
     "zod": "^3.24.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/[OWNER]/dz-sandbox.git",
+    "directory": "packages/mock-satim"
+  },
+  "bugs": {
+    "url": "https://github.com/[OWNER]/dz-sandbox/issues"
+  },
+  "homepage": "https://github.com/[OWNER]/dz-sandbox/tree/main/packages/mock-satim#readme",
+  "keywords": [
+    "algeria",
+    "payment",
+    "chargily",
+    "satim",
+    "yalidine",
+    "mock",
+    "sandbox",
+    "testing",
+    "webhook"
+  ]
 }

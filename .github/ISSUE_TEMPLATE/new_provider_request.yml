@@ -1,0 +1,47 @@
+name: New Provider Request
+description: Request a new Algerian payment or courier provider simulation
+title: "[Provider Request]: "
+labels: ["new-provider"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We want to cover the full Algerian e-commerce ecosystem. Remember our core rule: **no invented API shapes**. A new provider requires verified documentation or captured test fixtures.
+  - type: input
+    id: provider_name
+    attributes:
+      label: Provider Name
+      placeholder: e.g., Ecotrack, Kazitour, BaridiMob Direct
+    validations:
+      required: true
+  - type: dropdown
+    id: provider_category
+    attributes:
+      label: Provider Category
+      options:
+        - "Courier / Delivery (COD, tracking, parcels)"
+        - "Payment Gateway (card, mobile money)"
+        - "Other"
+    validations:
+      required: true
+  - type: textarea
+    id: documentation
+    attributes:
+      label: Documentation & Resources
+      description: Link to public developer documentation, SDKs, or describe how integration works.
+      placeholder: https://...
+    validations:
+      required: true
+  - type: textarea
+    id: test_access
+    attributes:
+      label: Sandbox / Test Mode Availability
+      description: Does this provider provide a self-serve developer sandbox, test credentials, or test cards?
+    validations:
+      required: false
+  - type: checkboxes
+    id: willingness
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to capture and contribute sanitized fixtures using `dz-sandbox record` and `dz-sandbox fixtures validate`.

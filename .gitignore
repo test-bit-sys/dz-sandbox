@@ -1,19 +1,50 @@
+# Dependencies
 node_modules/
-.next/
+
+# Build outputs
 dist/
+dist-docs/
+.next/
+generated-providers/
+
+# Test coverage & reports
 coverage/
+playwright-report/
+test-results/
+
+# Environment files
+.env*
+!.env.example
+
+# Databases & local storage
 *.db
 *.db-wal
 *.db-shm
 *.sqlite
-.env
-.env.local
-.DS_Store
-Thumbs.db
+data/*.sqlite
+
+# Packages & archives
 *.tgz
+algeria-geo-main/
+
+# Logs & runtime files
+*.log
+.dz-sandbox.pid
+
+# Python caches
 __pycache__/
 *.pyc
-.dz-sandbox.pid
-algeria-geo-main/
-dist-docs/
-generated-providers/
+.venv/
+
+# IDE & OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local agent run logs (root only)
+/PROGRESS.md
+/FINAL_REPORT.md
+/BLOCKED.md
+/DECISIONS.md
+/PUBLISH_BLOCKERS.md

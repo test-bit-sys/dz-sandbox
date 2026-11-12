@@ -9,7 +9,13 @@ description = "Minimal Python helper client for dz-sandbox local payment and del
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
+keywords = ["algeria", "payment", "chargily", "satim", "yalidine", "mock", "sandbox", "testing", "webhook"]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/[OWNER]/dz-sandbox"
+Repository = "https://github.com/[OWNER]/dz-sandbox"
+Issues = "https://github.com/[OWNER]/dz-sandbox/issues"
 
 [tool.setuptools.packages.find]
 include = ["dz_sandbox*"]

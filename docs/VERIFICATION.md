@@ -180,7 +180,7 @@ All 3 examples passed smoke verification!
 {"browserE2E":"OK","executable":"chrome.exe","externalRequests":0,"pageErrors":0,"webhooksReceived":2,"clockBefore":"2026-01-01T09:00:00.000Z","clockAfter":"2026-01-01T10:00:00.000Z"}
 Built 34 HTML docs pages into dist-docs/
 {"docsSite":"OK","pagesBuilt":34,"internalLinksVerified":348,"searchEntries":33,"externalAssetRequests":0,"defaultLocale":"ar-rtl"}
-Validated 5 fixture file(s) in D:\git hub\pull request\dz-sandbox\fixtures (captured: 0, seed: 5)
+Validated 5 fixture file(s) in fixtures (captured: 0, seed: 5)
 ```
 Note on `npm ci` & `npm audit`:
 - `npm ci --offline --no-audit --no-fund --dry-run` exited 0 (`added 34 packages in 7s`); existing offline `node_modules` was preserved because `better-sqlite3`'s install script requires network access if `prebuild-install` needs downloading binaries without local C++ build tools.

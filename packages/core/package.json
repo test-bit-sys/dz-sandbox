@@ -31,5 +31,25 @@
   },
   "optionalDependencies": {
     "better-sqlite3": "^11.9.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/[OWNER]/dz-sandbox.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/[OWNER]/dz-sandbox/issues"
+  },
+  "homepage": "https://github.com/[OWNER]/dz-sandbox/tree/main/packages/core#readme",
+  "keywords": [
+    "algeria",
+    "payment",
+    "chargily",
+    "satim",
+    "yalidine",
+    "mock",
+    "sandbox",
+    "testing",
+    "webhook"
+  ]
 }

@@ -1,1 +1,14 @@
 * text=auto eol=lf
+
+# Binary file types
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.tgz binary
+*.zip binary
+*.gz binary
+*.db binary
+*.sqlite binary

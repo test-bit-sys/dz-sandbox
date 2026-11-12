@@ -1,0 +1,53 @@
+name: Fixture Contribution
+description: Contribute captured and sanitized JSON request/response fixtures for a provider
+title: "[Fixture]: "
+labels: ["fixtures"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping close the fidelity gap! Please follow [docs/CAPTURE_GUIDE.md](https://github.com/[OWNER]/dz-sandbox/blob/main/docs/CAPTURE_GUIDE.md) and [docs/CONTRIBUTING-FIXTURES.md](https://github.com/[OWNER]/dz-sandbox/blob/main/docs/CONTRIBUTING-FIXTURES.md).
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Provider
+      options:
+        - "Chargily Pay v2"
+        - "SATIM E-Payment"
+        - "Yalidine Express"
+        - "ZR Express"
+        - "Maystro Delivery"
+        - "Other"
+    validations:
+      required: true
+  - type: textarea
+    id: endpoints_covered
+    attributes:
+      label: Endpoints & Status Codes Covered
+      description: List the endpoints and scenarios included in the captured fixture bundle.
+      placeholder: |
+        - POST /api/v2/checkouts (201 Created)
+        - POST /api/v2/checkouts (422 Unprocessable Entity)
+        - Webhook: checkout.paid
+    validations:
+      required: true
+  - type: textarea
+    id: capture_method
+    attributes:
+      label: Capture Methodology
+      description: How were the fixtures captured? (e.g. `dz-sandbox record`, official staging environment, sanitized proxy).
+    validations:
+      required: true
+  - type: checkboxes
+    id: redaction_checklist
+    attributes:
+      label: Mandatory Redaction Checklist
+      options:
+        - label: I ran `npx dz-sandbox fixtures validate <path>` and it passed with zero errors.
+          required: true
+        - label: I replaced all real API keys, bearer tokens, and secrets with `test_sk_*` or `[REDACTED]`.
+          required: true
+        - label: I replaced real customer names, phone numbers, addresses, and emails with dummy examples.
+          required: true
+        - label: I verified that no real payment card numbers (PANs) or CVVs exist in the payload.
+          required: true

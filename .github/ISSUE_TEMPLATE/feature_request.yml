@@ -1,0 +1,30 @@
+name: Feature Request
+description: Propose a new scenario, CLI command, or improvement to dz-sandbox
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea to make testing Algerian payments and deliveries faster or more realistic? Tell us about it!
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Motivation
+      description: Is your feature request related to a specific integration challenge or production edge case?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution / Behavior
+      description: Describe what you would like dz-sandbox to do, including proposed scenario names or flags.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or workarounds you've explored.
+    validations:
+      required: false
