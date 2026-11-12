@@ -1,7 +1,11 @@
 import json
+import pathlib
+import sys
 import threading
 import unittest
 from http.server import BaseHTTPRequestHandler, HTTPServer
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 from dz_sandbox import SandboxClient
 

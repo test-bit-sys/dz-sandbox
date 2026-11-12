@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { runCli } from './cli.js';
 import { runDoctor } from './doctor.js';
@@ -5,11 +8,16 @@ import { startSandboxRuntime, type SandboxRuntime } from './runtime.js';
 
 describe('dz-sandbox CLI & runtime', () => {
   let runtime: SandboxRuntime | undefined;
+  let tempDir: string | undefined;
 
   afterEach(async () => {
     if (runtime) {
       await runtime.stop();
       runtime = undefined;
+    }
+    if (tempDir) {
+      rmSync(tempDir, { recursive: true, force: true });
+      tempDir = undefined;
     }
     delete process.env.DZ_CONTROL_URL;
   });
@@ -46,13 +54,22 @@ describe('dz-sandbox CLI & runtime', () => {
 
     // CLI commands against live control server
     process.env.DZ_CONTROL_URL = runtime.urls.control;
+    tempDir = mkdtempSync(path.join(tmpdir(), 'dz-cli-'));
+    const bundlePath = path.join(tempDir, 'bundle.json');
+
     expect(await runCli(['--help'])).toBe(0);
     expect(await runCli(['scenario', 'set', 'chargily', 'duplicate_webhook'])).toBe(0);
     expect(await runCli(['scenario', 'set-resource', 'chargily', 'chk_1', 'declined'])).toBe(0);
+    expect(await runCli(['scenario', 'invalid'])).toBe(1);
     expect(await runCli(['status'])).toBe(0);
-    expect(await runCli(['logs', '--limit', '5'])).toBe(0);
+    expect(await runCli(['logs', '--provider', 'chargily', '--limit', '5'])).toBe(0);
     expect(await runCli(['export'])).toBe(0);
+    expect(await runCli(['export', bundlePath])).toBe(0);
     expect(await runCli(['reset'])).toBe(0);
+    expect(await runCli(['import', bundlePath])).toBe(0);
+    expect(await runCli(['import'])).toBe(1);
+    expect(await runCli(['stop'])).toBe(0);
+    expect(await runCli(['unknown-cmd'])).toBe(1);
     expect(await runCli(['doctor'])).toBe(0);
 
     const doc = await runDoctor({
