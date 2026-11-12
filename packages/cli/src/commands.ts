@@ -2,6 +2,15 @@ import { spawn } from 'node:child_process';
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  createRecorderProxy,
+  createReplayServer,
+  MemoryStore,
+  ScenarioEngine,
+  SeededRNG,
+  validateFixturesDirectory,
+  VirtualClock,
+} from '@dz-sandbox/core';
 import { runDoctor } from './doctor.js';
 import { startSandboxRuntime } from './runtime.js';
 
@@ -52,6 +61,9 @@ Usage:
   dz-sandbox logs [--provider chargily] [--limit 20]
   dz-sandbox export [file]
   dz-sandbox import <file>
+  dz-sandbox record --provider <name> --upstream <url> --out <dir> [--port 4100] [--no-redact --confirm-unredacted]
+  dz-sandbox replay --provider <name> --fixtures <dir> [--port 4101]
+  dz-sandbox fixtures validate [dir]
   dz-sandbox doctor`);
 }
 
@@ -207,6 +219,85 @@ export async function runCli(argv: string[]): Promise<number> {
     console.log('\nPaste into your .env:\n');
     console.log(report.envSnippet);
     return report.nodeOk ? 0 : 1;
+  }
+
+  if (cmd === 'fixtures' && sub === 'validate') {
+    const targetDir = path.resolve(process.cwd(), arg1 ?? 'fixtures');
+    const result = validateFixturesDirectory(targetDir);
+    console.log(
+      `Validated ${result.filesChecked} fixture file(s) in ${targetDir} (captured: ${result.capturedCount}, seed: ${result.seedCount})`,
+    );
+    if (!result.valid) {
+      for (const err of result.errors) {
+        console.error(`  - ${err}`);
+      }
+      return 1;
+    }
+    return 0;
+  }
+
+  if (cmd === 'record') {
+    const provider = getFlag(argv, '--provider');
+    const upstreamUrl = getFlag(argv, '--upstream');
+    const outDir = getFlag(argv, '--out');
+    if (!provider || !upstreamUrl || !outDir) {
+      console.error(
+        'Usage: dz-sandbox record --provider <name> --upstream <url> --out <dir> [--port 4100] [--no-redact --confirm-unredacted]',
+      );
+      return 1;
+    }
+    const port = Number.parseInt(getFlag(argv, '--port') ?? '4100', 10);
+    const noRedact = hasFlag(argv, '--no-redact');
+    const confirmUnredacted = hasFlag(argv, '--confirm-unredacted');
+    const allowLocalhostUpstream = !hasFlag(argv, '--disallow-localhost-upstream');
+    const { app } = createRecorderProxy({
+      provider,
+      upstreamUrl,
+      outDir: path.resolve(process.cwd(), outDir),
+      redact: !noRedact,
+      confirmUnredacted,
+      allowLocalhostUpstream,
+    });
+    const addr = await app.listen({ host: '127.0.0.1', port });
+    console.log(`dz-sandbox recorder proxy listening at ${addr} -> ${upstreamUrl}`);
+    console.log(`Redaction: ${noRedact ? 'DISABLED (do NOT commit or store in fixtures/)' : 'ENABLED'}`);
+    const shutdown = async () => {
+      await app.close();
+      process.exit(0);
+    };
+    process.on('SIGINT', () => void shutdown());
+    process.on('SIGTERM', () => void shutdown());
+    return 0;
+  }
+
+  if (cmd === 'replay') {
+    const provider = getFlag(argv, '--provider');
+    const fixturesDir = getFlag(argv, '--fixtures');
+    if (!provider || !fixturesDir) {
+      console.error('Usage: dz-sandbox replay --provider <name> --fixtures <dir> [--port 4101]');
+      return 1;
+    }
+    const port = Number.parseInt(getFlag(argv, '--port') ?? '4101', 10);
+    const store = new MemoryStore();
+    const clock = new VirtualClock();
+    const rng = new SeededRNG(1337);
+    const scenarios = new ScenarioEngine(store);
+    const ctx = { store, clock, rng, scenarios };
+    const { app, exchanges } = createReplayServer({
+      provider,
+      fixturesDir: path.resolve(process.cwd(), fixturesDir),
+      ctx,
+    });
+    const addr = await app.listen({ host: '127.0.0.1', port });
+    console.log(`dz-sandbox replay server (${provider}) listening at ${addr} (${exchanges.length} fixture(s))`);
+    const shutdown = async () => {
+      await app.close();
+      store.close();
+      process.exit(0);
+    };
+    process.on('SIGINT', () => void shutdown());
+    process.on('SIGTERM', () => void shutdown());
+    return 0;
   }
 
   printHelp();

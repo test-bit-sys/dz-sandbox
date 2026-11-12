@@ -419,6 +419,62 @@ describe('SATIM state machine property tests', () => {
       }),
     });
     expect(tooBig.statusCode).toBe(413);
+
+    // JSON payment action + scenario override + SatimTransitionError 409 on replay
+    const regJson = await app.inject({
+      method: 'POST',
+      url: '/payment/rest/register.do',
+      payload: {
+        userName: 'merch',
+        password: 'pwd',
+        orderNumber: 'ORD-JSON-1',
+        amount: 2500,
+        returnUrl: 'http://127.0.0.1/ok',
+        language: 'fr',
+      },
+    });
+    const ordJson = regJson.json().orderId as string;
+    expect((await app.inject({ method: 'GET', url: `/pay/satim/${ordJson}` })).body).toContain('SATIM');
+
+    const payJson = await app.inject({
+      method: 'POST',
+      url: `/pay/satim/${ordJson}/action`,
+      headers: { accept: 'application/json' },
+      payload: { action: 'pay', cardPan: '4000000000000001' },
+    });
+    expect(payJson.statusCode).toBe(200);
+    expect(payJson.json().ok).toBe(true);
+
+    const replayPay = await app.inject({
+      method: 'POST',
+      url: `/pay/satim/${ordJson}/action`,
+      headers: { accept: 'application/json' },
+      payload: { action: 'pay', cardPan: '4000000000000001' },
+    });
+    expect(replayPay.statusCode).toBe(409);
+
+    const regDeclined = await app.inject({
+      method: 'POST',
+      url: '/payment/rest/register.do',
+      payload: {
+        userName: 'merch',
+        password: 'pwd',
+        orderNumber: 'ORD-DEC-1',
+        amount: 2500,
+        returnUrl: 'http://127.0.0.1/ok',
+        language: 'ar',
+      },
+    });
+    const ordDec = regDeclined.json().orderId as string;
+    const decRes = await app.inject({
+      method: 'POST',
+      url: `/pay/satim/${ordDec}/action`,
+      headers: { accept: 'application/json', 'x-dz-scenario': 'declined' },
+      payload: {},
+    });
+    expect(decRes.statusCode).toBe(200);
+    expect(decRes.json().ok).toBe(false);
+
     await app.close();
   });
 });

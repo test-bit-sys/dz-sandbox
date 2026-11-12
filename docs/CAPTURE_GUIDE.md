@@ -1,6 +1,35 @@
 # Provider Fixture Capture & Redaction Guide
 
-`fixtures/*/captured/` is intentionally empty until contributors capture real responses from provider sandboxes/accounts. `dz-sandbox` never invents `verified: true` fixtures. Once you capture real HTTP transcripts and strip secrets using `scripts/redact-fixture.mjs`, we can add them as contract tests and promote matching entries in [`docs/SPEC_STATUS.md`](SPEC_STATUS.md) with your capture date and source.
+`fixtures/*/captured/` is intentionally empty until contributors capture real responses from provider sandboxes/accounts. `dz-sandbox` never invents `verified: true` fixtures. Once you capture real HTTP transcripts (using the built-in `dz-sandbox record` proxy or `scripts/redact-fixture.mjs`), validate them with `dz-sandbox fixtures validate` before opening a PR so we can add them as contract tests and promote matching entries in [`docs/SPEC_STATUS.md`](SPEC_STATUS.md) with your capture date and source.
+
+---
+
+## Built-in Record & Replay Workflow (`dz-sandbox record` / `replay`)
+
+The fastest safe way to capture real sandbox transcripts is the built-in local recording proxy (`127.0.0.1` only):
+
+```bash
+# 1. Start the recording proxy against Chargily Test Mode (redaction ON by default)
+npx dz-sandbox record --provider chargily --upstream https://pay.chargily.net/test/api/v2 --out ./fixtures/chargily/captured --port 4100
+
+# 2. Point your test script or curl at http://127.0.0.1:4100 instead of the upstream URL
+curl -sS -X POST http://127.0.0.1:4100/customers \
+  -H "Authorization: Bearer $CHARGILY_TEST_SK" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test User","email":"real@merchant.dz","phone":"+213551234567"}'
+
+# 3. Validate all saved fixtures (fails on unredacted secrets, Bearer tokens, cards, phone numbers, or real emails)
+npx dz-sandbox fixtures validate ./fixtures
+
+# 4. Replay captured fixtures offline later (with optional scenario fault injection)
+npx dz-sandbox replay --provider chargily --fixtures ./fixtures/chargily/captured --port 4101
+```
+
+### Mandatory Safety Controls
+- **Redaction is ON by default.** `Authorization`, `Cookie`, `Set-Cookie`, `X-API-ID`, `X-API-TOKEN`, query/body `password`/`userName`/`secret`, bearer tokens, JWTs, Algerian mobile numbers, emails, person names, street addresses, and card-like 13–19 digit sequences are automatically replaced with deterministic `<REDACTED_*>` placeholders.
+- **Response headers use a strict allowlist** (`content-type`, `retry-after`, `x-ratelimit-*`, `x-request-id`, `x-correlation-id`, `cache-control`, `signature`) — upstream `Set-Cookie` and proxy headers are never persisted.
+- `--no-redact` requires an explicit `--confirm-unredacted` flag, prints a loud warning, and **refuses to write anywhere under `fixtures/`**.
+- `upstream` URLs pointing to private/metadata IP ranges (e.g. `169.254.169.254`, `10.x`, `192.168.x`) are blocked by SSRF policy.
 
 ---
 

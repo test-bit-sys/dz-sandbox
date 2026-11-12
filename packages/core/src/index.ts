@@ -7,4 +7,5 @@ export * from './store.js';
 export * from './scenarios.js';
 export * from './webhooks.js';
 export * from './security.js';
+export * from './recorder.js';
 export * from './http.js';

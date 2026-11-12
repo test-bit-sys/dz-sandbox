@@ -70,6 +70,12 @@ describe('dz-sandbox CLI & runtime', () => {
     expect(await runCli(['stop'])).toBe(0);
     expect(await runCli(['unknown-cmd'])).toBe(1);
     expect(await runCli(['doctor'])).toBe(0);
+    expect(await runCli(['record'])).toBe(1);
+    expect(await runCli(['replay'])).toBe(1);
+
+    const repoFixtures = path.resolve(import.meta.dirname, '..', '..', '..', 'fixtures');
+    expect(await runCli(['fixtures', 'validate', repoFixtures])).toBe(0);
+    expect(await runCli(['fixtures', 'validate', path.join(tempDir, 'nonexistent')])).toBe(1);
 
     const doc = await runDoctor({
       DZ_CONTROL_PORT: String(runtime.ports.control),

@@ -25,6 +25,33 @@ This document records **real verification runs** performed for `v0.1.0`, separat
 
 ---
 
+## 2. Phase 2 Step Verification Output Snippets
+
+### STEP 2: Record & Replay (`dz-sandbox record`, `fixtures validate`, `replay`)
+
+Command:
+```bash
+npm run build && npm run typecheck && npm run lint && npm run test:coverage
+```
+Last ~15 lines of real output:
+```text
+ mock-satim/src    |   98.04 |    87.61 |     100 |   98.04 |                   
+  hosted-page.ts   |     100 |       75 |     100 |     100 | 46                
+  satim.spec.ts    |     100 |      100 |     100 |     100 |                   
+  server.ts        |   96.67 |       85 |     100 |   96.67 | ...52-353,372-373 
+  state-machine.ts |     100 |      100 |     100 |     100 |                   
+ mock-yalidine/src |   99.72 |    90.38 |   96.96 |   99.72 |                   
+  ....generated.ts |     100 |      100 |     100 |     100 |                   
+  geo-dataset.ts   |   98.72 |    93.75 |   96.29 |   98.72 | 155-156           
+  lifecycle.ts     |     100 |    94.44 |     100 |     100 | 174               
+  server.ts        |     100 |    88.09 |     100 |     100 | ...02,431,447,450 
+  yalidine.spec.ts |     100 |      100 |     100 |     100 |                   
+-------------------|---------|----------|---------|---------|-------------------
+```
+Result: Exit 0 (`Test Files 10 passed (10)`, `Tests 45 passed (45)`; `core/src` 96.67% stmts / 86.86% br / 97.41% funcs / 96.67% lines; `recorder.ts` 97.97% stmts / 87.43% br / 100% funcs / 97.97% lines).
+
+---
+
 ## 2. Checks Marked `NOT RUN` Locally (and Why)
 
 | Check | Reason Not Run Locally | Mitigation / Where Tested |
