@@ -1,0 +1,37 @@
+services:
+  dz-sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dz-sandbox:local
+    container_name: dz-sandbox
+    ports:
+      - "${DZ_CONTROL_PORT:-4000}:4000"
+      - "${DZ_CHARGILY_PORT:-4001}:4001"
+      - "${DZ_SATIM_PORT:-4002}:4002"
+      - "${DZ_YALIDINE_PORT:-4003}:4003"
+    environment:
+      DZ_SANDBOX_HOST: "0.0.0.0"
+      DZ_STORE: "${DZ_STORE:-memory}"
+      DZ_SQLITE_PATH: "/app/data/dz-sandbox.db"
+      DZ_SEED: "${DZ_SEED:-1337}"
+      DZ_SCENARIOS_DIR: "/app/scenarios"
+    volumes:
+      - dz_sandbox_data:/app/data
+      - ./scenarios:/app/scenarios:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/__control/health').then(r => { if (!r.ok) process.exit(1); }).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+volumes:
+  dz_sandbox_data:

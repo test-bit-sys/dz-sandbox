@@ -1,0 +1,13 @@
+{
+  "name": "dz-sandbox-vitest-example",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@dz-sandbox/client": "^0.1.0",
+    "vitest": "^3.0.9"
+  }
+}

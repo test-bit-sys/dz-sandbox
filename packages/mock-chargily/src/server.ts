@@ -230,12 +230,14 @@ export function createChargilyServer(deps: ChargilyServerDeps): FastifyInstance 
       throw Object.assign(new Error('Checkout not found'), { statusCode: 404 });
     }
 
+    const explicitFailureAction =
+      requestedOutcome && requestedOutcome !== 'success' ? requestedOutcome : undefined;
     const resolved = ctx.scenarios.resolve({
       provider: 'chargily',
-      headerScenario: headerScenario ?? requestedOutcome,
+      headerScenario: headerScenario ?? explicitFailureAction,
       resourceId: checkoutId,
     });
-    const outcome = requestedOutcome ?? resolved.definition.behavior.outcome ?? resolved.name;
+    const outcome = explicitFailureAction ?? resolved.definition.behavior.outcome ?? resolved.name;
 
     if (checkout.status === 'paid' && outcome === 'double_charge_attempt') {
       return { checkout, outcome, httpStatus: 409 };

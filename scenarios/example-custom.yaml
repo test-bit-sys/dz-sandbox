@@ -1,0 +1,16 @@
+# Custom scenarios are hot-reloaded from ./scenarios (or DZ_SCENARIOS_DIR).
+# Activate any scenario via:
+#   curl -X PUT http://127.0.0.1:4000/__control/scenario/chargily -d '{"scenario":"chargily_slow_duplicate"}'
+#   or header: X-DZ-Scenario: chargily_slow_duplicate
+
+scenarios:
+  - name: chargily_slow_duplicate
+    provider: chargily
+    category: payment
+    description: Simulates a slow response (350ms) followed by 2 duplicate paid webhooks.
+    behavior:
+      outcome: success
+      latencyMs: 350
+      webhook:
+        count: 2
+        delayMs: 50

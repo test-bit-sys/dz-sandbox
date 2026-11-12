@@ -3,11 +3,15 @@ import express from 'express';
 
 const CHARGILY_BASE = process.env.CHARGILY_BASE_URL ?? 'http://127.0.0.1:4001/api/v2';
 const CHARGILY_SECRET = process.env.CHARGILY_SECRET_KEY ?? 'test_sk_example_secret';
+const SATIM_BASE = process.env.SATIM_BASE_URL ?? 'http://127.0.0.1:4002/payment/rest';
+const SATIM_USER = process.env.SATIM_USERNAME ?? 'test_merchant';
+const SATIM_PASS = process.env.SATIM_PASSWORD ?? 'test_password';
 const PORT = Number(process.env.PORT ?? 3100);
 const ENFORCE_IDEMPOTENCY = process.env.IDEMPOTENT_WEBHOOKS === 'true';
 
 export function createExampleApp(opts = {}) {
   const chargilyBase = opts.chargilyBase ?? CHARGILY_BASE;
+  const satimBase = opts.satimBase ?? SATIM_BASE;
   const secret = opts.secret ?? CHARGILY_SECRET;
   const enforceIdempotency = opts.enforceIdempotency ?? ENFORCE_IDEMPOTENCY;
 
@@ -89,6 +93,56 @@ export function createExampleApp(opts = {}) {
     }
 
     return res.status(200).json({ ok: true });
+  });
+
+  app.post('/satim/orders', async (req, res) => {
+    const amountDzd = Number(req.body?.amount ?? 2000);
+    const amountCentimes = Math.round(amountDzd * 100);
+    const orderId = `sat_${orders.size + 1}`;
+    const selfBase = opts.selfBase ?? `http://127.0.0.1:${PORT}`;
+    const qs = new URLSearchParams({
+      userName: SATIM_USER,
+      password: SATIM_PASS,
+      orderNumber: orderId,
+      amount: String(amountCentimes),
+      currency: '012',
+      returnUrl: `${selfBase}/satim/return?order=${orderId}`,
+      failUrl: `${selfBase}/failure?order=${orderId}`,
+      language: 'fr',
+    });
+
+    const resp = await fetch(`${satimBase}/register.do?${qs.toString()}`);
+    const body = await resp.json();
+    if (!resp.ok || !body.orderId) {
+      return res.status(502).json({ error: 'SATIM_REGISTER_FAILED', detail: body });
+    }
+
+    orders.set(orderId, {
+      orderId,
+      satimOrderId: body.orderId,
+      amount: amountDzd,
+      status: 'pending',
+      fulfillments: 0,
+    });
+    return res.status(201).json({ orderId, satimOrderId: body.orderId, formUrl: body.formUrl });
+  });
+
+  app.get('/satim/return', async (req, res) => {
+    const satimOrderId = String(req.query.orderId ?? '');
+    const orderNum = String(req.query.order ?? '');
+    const qs = new URLSearchParams({
+      userName: SATIM_USER,
+      password: SATIM_PASS,
+      orderId: satimOrderId,
+    });
+    const ack = await fetch(`${satimBase}/confirmOrder.do?${qs.toString()}`).then((r) => r.json());
+    const order = orders.get(orderNum);
+    if (order && ack.errorCode === '0' && ack.orderStatus === 2) {
+      order.status = 'paid';
+      order.fulfillments += 1;
+      fulfillments += 1;
+    }
+    return res.json({ orderNum, satimOrderId, ack, order });
   });
 
   app.get('/orders', (_req, res) => {

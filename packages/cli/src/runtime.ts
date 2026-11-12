@@ -161,6 +161,9 @@ export async function startSandboxRuntime(
     servers: { control, chargily, satim, yalidine },
     async stop() {
       scenarios.stopWatching();
+      for (const s of [control, chargily, satim, yalidine]) {
+        s.server.closeIdleConnections?.();
+      }
       await Promise.all([
         control.close(),
         chargily.close(),
