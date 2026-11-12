@@ -28,9 +28,9 @@ export function renderDashboardHtml(): string {
       --border: #334155;
       --accent: #10b981;
       --accent-ink: #022c22;
-      --danger: #ef4444;
-      --warn: #f59e0b;
-      --info: #3b82f6;
+      --danger: #f87171;
+      --warn: #fbbf24;
+      --info: #60a5fa;
     }
     [data-theme="light"] {
       --bg: #f8fafc;
@@ -39,11 +39,11 @@ export function renderDashboardHtml(): string {
       --text: #0f172a;
       --muted: #475569;
       --border: #cbd5e1;
-      --accent: #059669;
+      --accent: #047857;
       --accent-ink: #ffffff;
-      --danger: #dc2626;
-      --warn: #d97706;
-      --info: #2563eb;
+      --danger: #b91c1c;
+      --warn: #92400e;
+      --info: #1d4ed8;
     }
     * { box-sizing: border-box; }
     body {
@@ -83,7 +83,7 @@ export function renderDashboardHtml(): string {
       font-weight: 600;
     }
     .btn-accent { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
-    .btn-danger { background: var(--danger); color: #fff; border-color: transparent; }
+    .btn-danger { background: #b91c1c; color: #ffffff; border-color: transparent; }
     .nav {
       display: flex;
       gap: 6px;
@@ -169,21 +169,23 @@ export function renderDashboardHtml(): string {
   </header>
 
   <nav class="nav" role="tablist" aria-label="Dashboard sections">
-    <button class="btn" role="tab" data-tab="overview" aria-selected="true"></button>
-    <button class="btn" role="tab" data-tab="requests" aria-selected="false"></button>
-    <button class="btn" role="tab" data-tab="webhooks" aria-selected="false"></button>
-    <button class="btn" role="tab" data-tab="scenarios" aria-selected="false"></button>
-    <button class="btn" role="tab" data-tab="preview" aria-selected="false"></button>
-    <button class="btn" role="tab" data-tab="clock" aria-selected="false"></button>
+    <button class="btn" id="tab-btn-overview" role="tab" data-tab="overview" aria-controls="tab-overview" aria-selected="true"></button>
+    <button class="btn" id="tab-btn-requests" role="tab" data-tab="requests" aria-controls="tab-requests" aria-selected="false"></button>
+    <button class="btn" id="tab-btn-webhooks" role="tab" data-tab="webhooks" aria-controls="tab-webhooks" aria-selected="false"></button>
+    <button class="btn" id="tab-btn-scenarios" role="tab" data-tab="scenarios" aria-controls="tab-scenarios" aria-selected="false"></button>
+    <button class="btn" id="tab-btn-matrix" role="tab" data-tab="matrix" aria-controls="tab-matrix" aria-selected="false"></button>
+    <button class="btn" id="tab-btn-preview" role="tab" data-tab="preview" aria-controls="tab-preview" aria-selected="false"></button>
+    <button class="btn" id="tab-btn-clock" role="tab" data-tab="clock" aria-controls="tab-clock" aria-selected="false"></button>
   </nav>
 
   <main>
-    <section id="tab-overview" role="tabpanel"></section>
-    <section id="tab-requests" role="tabpanel" class="hidden"></section>
-    <section id="tab-webhooks" role="tabpanel" class="hidden"></section>
-    <section id="tab-scenarios" role="tabpanel" class="hidden"></section>
-    <section id="tab-preview" role="tabpanel" class="hidden"></section>
-    <section id="tab-clock" role="tabpanel" class="hidden"></section>
+    <section id="tab-overview" role="tabpanel" aria-labelledby="tab-btn-overview"></section>
+    <section id="tab-requests" role="tabpanel" aria-labelledby="tab-btn-requests" class="hidden"></section>
+    <section id="tab-webhooks" role="tabpanel" aria-labelledby="tab-btn-webhooks" class="hidden"></section>
+    <section id="tab-scenarios" role="tabpanel" aria-labelledby="tab-btn-scenarios" class="hidden"></section>
+    <section id="tab-matrix" role="tabpanel" aria-labelledby="tab-btn-matrix" class="hidden"></section>
+    <section id="tab-preview" role="tabpanel" aria-labelledby="tab-btn-preview" class="hidden"></section>
+    <section id="tab-clock" role="tabpanel" aria-labelledby="tab-btn-clock" class="hidden"></section>
   </main>
 
   <footer id="disclaimer-footer"></footer>
@@ -232,6 +234,7 @@ export function renderDashboardHtml(): string {
       });
       applyLocaleChrome();
       renderActiveTab();
+      void refreshAll();
     }
 
     async function api(path, opts) {
@@ -251,11 +254,14 @@ export function renderDashboardHtml(): string {
     }
 
     async function refreshAll() {
+      const reqQuery = reqFilter
+        ? '?limit=500&provider=' + encodeURIComponent(reqFilter)
+        : '?limit=500';
       const [state, scenData, reqData, whData] = await Promise.all([
         api('/__control/state'),
         api('/__control/scenarios'),
-        api('/__control/requests' + (reqFilter ? '?provider=' + encodeURIComponent(reqFilter) : '')),
-        api('/__control/webhooks'),
+        api('/__control/requests' + reqQuery),
+        api('/__control/webhooks?limit=500'),
       ]);
       lastState = state;
       lastScenarios = scenData.scenarios || [];
@@ -281,6 +287,7 @@ export function renderDashboardHtml(): string {
       if (currentTab === 'requests') renderRequests();
       if (currentTab === 'webhooks') renderWebhooks();
       if (currentTab === 'scenarios') renderScenarios();
+      if (currentTab === 'matrix') renderMatrix();
       if (currentTab === 'preview') renderPreview();
       if (currentTab === 'clock') renderClock();
     }
@@ -352,9 +359,9 @@ export function renderDashboardHtml(): string {
         '<div class="card" style="margin-bottom:16px">' +
           '<h3>' + esc(t('webhooks.triggerTitle')) + '</h3>' +
           '<div class="row-flex">' +
-            '<select id="trig-provider"><option value="chargily">chargily</option><option value="yalidine">yalidine</option></select>' +
-            '<input id="trig-event" value="checkout.paid" />' +
-            '<input id="trig-url" value="http://127.0.0.1:3100/webhooks/chargily" style="min-width:260px" />' +
+            '<select id="trig-provider" aria-label="Webhook provider"><option value="chargily">chargily</option><option value="yalidine">yalidine</option></select>' +
+            '<input id="trig-event" aria-label="Webhook event type" value="checkout.paid" />' +
+            '<input id="trig-url" aria-label="Webhook target URL" value="http://127.0.0.1:3100/webhooks/chargily" style="min-width:260px" />' +
             '<button class="btn btn-accent" type="button" onclick="triggerManualHook()">' + esc(t('webhooks.triggerBtn')) + '</button>' +
           '</div>' +
         '</div>' +
@@ -373,26 +380,79 @@ export function renderDashboardHtml(): string {
         '<div class="card" style="margin-bottom:16px">' +
           '<h3>' + esc(t('scenarios.setProvider')) + '</h3>' +
           '<div class="row-flex">' +
-            '<select id="scen-provider"><option value="chargily">chargily</option><option value="satim">satim</option><option value="yalidine">yalidine</option></select>' +
-            '<select id="scen-name">' + options + '</select>' +
+            '<select id="scen-provider" aria-label="Scenario provider"><option value="chargily">chargily</option><option value="satim">satim</option><option value="yalidine">yalidine</option></select>' +
+            '<select id="scen-name" aria-label="Scenario name">' + options + '</select>' +
             '<button class="btn btn-accent" type="button" onclick="applyProviderScenario()">' + esc(t('scenarios.apply')) + '</button>' +
           '</div>' +
         '</div>' +
         '<div class="card" style="margin-bottom:16px">' +
           '<h3>' + esc(t('scenarios.customTitle')) + '</h3>' +
-          '<textarea id="custom-scen-json" rows="4" style="width:100%">{"name":"my_custom_slow","provider":"chargily","category":"network","description":"500ms latency","behavior":{"latencyMs":500}}</textarea>' +
+          '<textarea id="custom-scen-json" aria-label="Custom scenario JSON" rows="4" style="width:100%">{"name":"my_custom_slow","provider":"chargily","category":"network","description":"500ms latency","behavior":{"latencyMs":500}}</textarea>' +
           '<div style="margin-top:8px"><button class="btn" type="button" onclick="registerCustomScenario()">' + esc(t('scenarios.createBtn')) + '</button></div>' +
         '</div>' +
         '<div class="card"><table><tbody>' + list + '</tbody></table></div>';
     }
 
+    function renderMatrix() {
+      const providers = ['chargily', 'satim', 'yalidine'];
+      const hitCounts = {};
+      for (const r of lastRequests) {
+        const k = r.provider + ':' + r.scenario;
+        hitCounts[k] = (hitCounts[k] || 0) + 1;
+      }
+      const pairs = [];
+      for (const p of providers) {
+        const relevant = lastScenarios.filter(
+          (s) => (s.provider === 'all' || s.provider === p) && s.name !== 'success' && s.name !== 'created_ok',
+        );
+        for (const s of relevant) {
+          const hits = hitCounts[p + ':' + s.name] || 0;
+          pairs.push({ provider: p, name: s.name, category: s.category, hits });
+        }
+      }
+      const testedCount = pairs.filter((x) => x.hits > 0).length;
+      const rows = pairs.map((row) =>
+        '<tr>' +
+          '<td><code>' + esc(row.provider) + '</code></td>' +
+          '<td><code>' + esc(row.name) + '</code></td>' +
+          '<td>' + esc(row.category) + '</td>' +
+          '<td><span class="badge ' + (row.hits > 0 ? 'ok' : 'warn') + '">' + esc(row.hits > 0 ? t('matrix.tested') : t('matrix.untested')) + '</span></td>' +
+          '<td>' + row.hits + '</td>' +
+          '<td><button class="btn" type="button" onclick="activateMatrixScenario(\\'' + esc(row.provider) + '\\', \\'' + esc(row.name) + '\\')">' + esc(t('matrix.activate')) + '</button></td>' +
+        '</tr>'
+      ).join('');
+
+      document.getElementById('tab-matrix').innerHTML =
+        '<div class="card">' +
+          '<h2>' + esc(t('matrix.title')) + '</h2>' +
+          '<p><strong>' + esc(t('matrix.summary')) + ' ' + testedCount + ' / ' + pairs.length + '</strong></p>' +
+          '<table><thead><tr>' +
+            '<th scope="col">' + esc(t('matrix.provider')) + '</th>' +
+            '<th scope="col">' + esc(t('matrix.scenario')) + '</th>' +
+            '<th scope="col">' + esc(t('matrix.category')) + '</th>' +
+            '<th scope="col">' + esc(t('matrix.status')) + '</th>' +
+            '<th scope="col">' + esc(t('matrix.hits')) + '</th>' +
+            '<th scope="col">' + esc(t('matrix.action')) + '</th>' +
+          '</tr></thead><tbody>' + rows + '</tbody></table>' +
+        '</div>';
+    }
+
     function renderPreview() {
+      if (document.getElementById('preview-frame')) {
+        const heading = document.querySelector('#tab-preview h3');
+        const desc = document.querySelector('#tab-preview p');
+        const btn = document.querySelector('#tab-preview button');
+        if (heading) heading.textContent = t('preview.title');
+        if (desc) desc.textContent = t('preview.desc');
+        if (btn) btn.textContent = t('preview.openUrl');
+        return;
+      }
       document.getElementById('tab-preview').innerHTML =
         '<div class="card">' +
           '<h3>' + esc(t('preview.title')) + '</h3>' +
           '<p>' + esc(t('preview.desc')) + '</p>' +
           '<div class="row-flex" style="margin-bottom:12px">' +
-            '<input id="preview-url" placeholder="http://127.0.0.1:4001/pay/chargily/chk_..." style="flex:1;min-width:260px" />' +
+            '<input id="preview-url" aria-label="Hosted payment page URL" placeholder="http://127.0.0.1:4001/pay/chargily/chk_..." style="flex:1;min-width:260px" />' +
             '<button class="btn btn-accent" type="button" onclick="loadPreviewFrame()">' + esc(t('preview.openUrl')) + '</button>' +
           '</div>' +
           '<iframe id="preview-frame" title="Hosted payment page preview"></iframe>' +
@@ -412,7 +472,7 @@ export function renderDashboardHtml(): string {
             '<button class="btn" type="button" onclick="advanceClock(\\'15m\\')">+15m</button>' +
             '<button class="btn" type="button" onclick="advanceClock(\\'1h\\')">+1h</button>' +
             '<button class="btn" type="button" onclick="advanceClock(\\'24h\\')">+24h</button>' +
-            '<input id="clock-custom" placeholder="' + esc(t('clock.customDuration')) + '" />' +
+            '<input id="clock-custom" aria-label="Custom clock advance duration" placeholder="' + esc(t('clock.customDuration')) + '" />' +
             '<button class="btn btn-accent" type="button" onclick="advanceClock(document.getElementById(\\'clock-custom\\').value)">' + esc(t('clock.advance')) + '</button>' +
             '<button class="btn btn-danger" type="button" onclick="resetClock()">' + esc(t('clock.reset')) + '</button>' +
           '</div>' +
@@ -444,6 +504,14 @@ export function renderDashboardHtml(): string {
     window.applyProviderScenario = async () => {
       const p = document.getElementById('scen-provider').value;
       const s = document.getElementById('scen-name').value;
+      await api('/__control/scenario/' + encodeURIComponent(p), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenario: s }),
+      });
+      refreshAll();
+    };
+    window.activateMatrixScenario = async (p, s) => {
       await api('/__control/scenario/' + encodeURIComponent(p), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -491,8 +559,19 @@ export function renderDashboardHtml(): string {
       await api('/__control/reset', { method: 'POST' });
       refreshAll();
     });
-    document.querySelectorAll('[role="tab"]').forEach((btn) => {
+    const tabButtons = Array.from(document.querySelectorAll('[role="tab"]'));
+    tabButtons.forEach((btn, idx) => {
       btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+      btn.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+        const step = e.key === 'ArrowRight' ? 1 : -1;
+        const nextIdx = (idx + step + tabButtons.length) % tabButtons.length;
+        const nextBtn = tabButtons[nextIdx];
+        if (nextBtn) {
+          nextBtn.focus();
+          switchTab(nextBtn.getAttribute('data-tab'));
+        }
+      });
     });
 
     applyLocaleChrome();

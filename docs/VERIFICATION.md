@@ -94,6 +94,21 @@ Last ~15 lines of real output:
 ```
 Result: Exit 0 (`Test Files 13 passed (13)`, `Tests 49 passed (49)`; both scaffolds at 100% / 100% / 100% / 100%).
 
+### STEP 5: Dashboard Quality (Playwright Chromium E2E, Accessibility Audit & Scenario Matrix)
+
+Command:
+```bash
+npm run test:e2e:browser
+```
+Last ~15 lines of real output:
+```text
+> dz-sandbox-monorepo@0.1.0 test:e2e:browser
+> node scripts/browser-e2e.mjs
+
+{"browserE2E":"OK","executable":"chrome.exe","externalRequests":0,"pageErrors":0,"webhooksReceived":2,"clockBefore":"2026-01-01T09:00:00.000Z","clockAfter":"2026-01-01T10:00:00.000Z"}
+```
+Result: Exit 0 (Verified AR RTL default, FR/EN toggle, keyboard ArrowRight tab navigation, live Request Log, hosted checkout Payment Preview iframe completion, Webhooks redelivery, Scenario Matrix coverage tracking + `rate_limited` -> HTTP `429`, Clock `+1h` advance, zero external requests, zero page errors, WCAG 2.1 AA computed contrast >= 4.5:1 & ARIA checks across dark and light themes). Note: `@axe-core/playwright` npm package is absent from local offline cache (see `BLOCKED.md` `B-05`); `scripts/browser-e2e.mjs` invokes it automatically when installed in online CI.
+
 ---
 
 ## 2. Checks Marked `NOT RUN` Locally (and Why)

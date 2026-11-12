@@ -11,6 +11,7 @@
     "requests": "Requêtes",
     "webhooks": "Webhooks",
     "scenarios": "Scénarios",
+    "matrix": "Matrice de scénarios",
     "preview": "Aperçu paiement",
     "clock": "Horloge virtuelle"
   },
@@ -46,6 +47,19 @@
     "createBtn": "Enregistrer",
     "builtIn": "Intégré",
     "custom": "Personnalisé"
+  },
+  "matrix": {
+    "title": "Matrice de couverture des scénarios d'échec",
+    "summary": "Exécutés dans cette session :",
+    "provider": "Fournisseur",
+    "scenario": "Scénario",
+    "category": "Catégorie",
+    "status": "Statut",
+    "tested": "Testé",
+    "untested": "Non testé",
+    "hits": "Appels",
+    "action": "Action",
+    "activate": "Activer"
   },
   "preview": {
     "title": "Aperçu des pages de paiement hébergées",

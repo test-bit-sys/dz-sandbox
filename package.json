@@ -19,6 +19,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:python": "python -m unittest discover -s packages/python-client/tests -v",
+    "test:e2e:browser": "node scripts/browser-e2e.mjs",
     "examples:smoke": "node scripts/examples-smoke.mjs"
   },
   "devDependencies": {
@@ -27,6 +28,7 @@
     "@vitest/coverage-v8": "^3.0.9",
     "eslint": "^9.22.0",
     "fast-check": "^3.23.2",
+    "playwright-core": "^1.58.2",
     "tsup": "^8.4.0",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.26.1",

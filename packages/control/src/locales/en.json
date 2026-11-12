@@ -11,6 +11,7 @@
     "requests": "Requests",
     "webhooks": "Webhooks",
     "scenarios": "Scenarios",
+    "matrix": "Scenario Matrix",
     "preview": "Payment Preview",
     "clock": "Virtual Clock"
   },
@@ -46,6 +47,19 @@
     "createBtn": "Register Scenario",
     "builtIn": "Built-in",
     "custom": "Custom"
+  },
+  "matrix": {
+    "title": "Failure & Scenario Coverage Matrix",
+    "summary": "Exercised in current session:",
+    "provider": "Provider",
+    "scenario": "Scenario",
+    "category": "Category",
+    "status": "Coverage Status",
+    "tested": "Tested",
+    "untested": "Untested",
+    "hits": "Hits",
+    "action": "Action",
+    "activate": "Activate"
   },
   "preview": {
     "title": "Hosted Payment Page Preview",

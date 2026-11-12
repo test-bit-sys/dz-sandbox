@@ -21,3 +21,7 @@ Items listed here cannot be verified or completed autonomously because they requ
 ## B-04: GitHub Push, Release Tagging, GitHub Pages Deployment, and `npm publish`
 - **Reason:** Explicitly prohibited during unattended Phase 2 execution.
 - **Suggested unblock:** Maintainer reviews `phase2/hardening-and-recorder`, runs release checklist steps, enables GitHub Pages (`workflow_dispatch` / tag workflow) if desired, and publishes manually.
+
+## B-05: `@axe-core/playwright` npm Package Offline Cache Absence
+- **Reason:** `npm install -D @axe-core/playwright` failed because outbound HTTPS to `registry.npmjs.org` hits `ERR_SSL_CIPHER_OPERATION_FAILED` in this environment and the `axe-core` tarball is absent from the local npm cache.
+- **Mitigation:** `playwright-core@1.58.2` installed cleanly from local cache and `npm run test:e2e:browser` (`scripts/browser-e2e.mjs`) executes real headless Chromium E2E tests plus live DOM/ARIA/keyboard/WCAG 2.1 relative-luminance contrast audits across dark & light themes and AR/FR/EN locales, and automatically runs `@axe-core/playwright` when installed in online CI.
