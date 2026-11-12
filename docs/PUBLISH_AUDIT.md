@@ -15,8 +15,8 @@ This audit document records the pre-release verification performed on `dz-sandbo
 | **Python Client Test** | `npm run test:python` | **Passed** (Exit 0) | `Ran 1 test in 0.805s ... OK` (`packages/python-client`). |
 | **Example Smoke Suite** | `npm run examples:smoke` | **Passed** (Exit 0) | `express-checkout` (naive duplicate-bug vs idempotent fix), `nextjs-cod-store` (happy path 201, phone 422, rate limit 503), and `test-with-vitest` all passed. |
 | **Browser E2E & A11y** | `npm run test:e2e:browser` | **Passed** (Exit 0) | `{"browserE2E":"OK","executable":"chrome.exe","externalRequests":0,"pageErrors":0,"webhooksReceived":2,"clockBefore":"2026-01-01T09:00:00.000Z","clockAfter":"2026-01-01T10:00:00.000Z"}`. |
-| **Offline Docs Build** | `npm run docs:build` | **Passed** (Exit 0) | `Built 36 HTML docs pages into dist-docs/`. |
-| **Docs Link & Purity Check** | `npm run test:docs` | **Passed** (Exit 0) | `{"docsSite":"OK","pagesBuilt":36,"internalLinksVerified":368,"searchEntries":35,"externalAssetRequests":0,"defaultLocale":"ar-rtl"}`. |
+| **Offline Docs Build** | `npm run docs:build` | **Passed** (Exit 0) | `Built 38 HTML docs pages into dist-docs/`. |
+| **Docs Link & Purity Check** | `npm run test:docs` | **Passed** (Exit 0) | `{"docsSite":"OK","pagesBuilt":38,"internalLinksVerified":390,"searchEntries":37,"externalAssetRequests":0,"defaultLocale":"ar-rtl"}`. |
 | **Package Tarball Dry-Run** | `npm pack --workspaces --dry-run` | **Passed** (Exit 0) | Verified all 9 workspace tarballs contain only `dist/`, `LICENSE`, `README.md`, `package.json` (zero `.ts` sources or tests leak). |
 | **Fixtures Validation** | `npx dz-sandbox fixtures validate ./fixtures` | **Passed** (Exit 0) | `Validated 5 fixture file(s) in fixtures (captured: 0, seed: 5)`. Zero unredacted secrets or PII. |
 | **Secrets Scan** | Automated regex scan on git log & tree | **Passed** (Exit 0) | 0 private keys, 0 real AWS/GitHub/Slack tokens, 0 live Stripe/Chargily keys, 0 real PANs, 0 real PII. |
