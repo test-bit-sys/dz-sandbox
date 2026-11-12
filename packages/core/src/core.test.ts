@@ -8,7 +8,9 @@ import {
   applyNetworkScenario,
   createStoreFromEnv,
   DEFAULT_INITIAL_CLOCK_MS,
+  isAllowedWebhookUrl,
   MemoryStore,
+  openSqliteDatabase,
   parseDurationMs,
   redactBody,
   redactHeaders,
@@ -204,7 +206,7 @@ describe.each<[string, () => SandboxStore]>([
 });
 
 describe('createStoreFromEnv', () => {
-  it('selects memory or sqlite based on DZ_STORE', () => {
+  it('selects memory or sqlite based on DZ_STORE and falls back cleanly on missing sqlite drivers', () => {
     const mem = createStoreFromEnv({ DZ_STORE: 'memory' });
     expect(mem.kind).toBe('memory');
     mem.close();
@@ -212,6 +214,83 @@ describe('createStoreFromEnv', () => {
     const sqlite = createStoreFromEnv({ DZ_STORE: 'sqlite', DZ_SQLITE_PATH: ':memory:' });
     expect(sqlite.kind).toBe('sqlite');
     sqlite.close();
+
+    // Fallback 1: node:sqlite unavailable -> falls back to better-sqlite3 with clear log line
+    const warnings1: string[] = [];
+    const fakeStatements = {
+      get: () => undefined,
+      all: () => [],
+      run: () => ({ changes: 0 }),
+    };
+    class FakeBetterSqlite3 {
+      exec() {}
+      prepare() {
+        return fakeStatements;
+      }
+      close() {}
+    }
+    const db = openSqliteDatabase(':memory:', {
+      loadBuiltin: () => {
+        throw new Error('ERR_UNKNOWN_BUILTIN_MODULE: node:sqlite');
+      },
+      loadBetterSqlite3: () => FakeBetterSqlite3,
+      logger: { warn: (m) => warnings1.push(m) },
+    });
+    expect(warnings1.some((w) => w.includes('falling back to better-sqlite3'))).toBe(true);
+    db.close();
+
+    // Fallback 2: both node:sqlite and better-sqlite3 unavailable -> falls back cleanly to MemoryStore with warning
+    const warnings2: string[] = [];
+    const fallbackStore = createStoreFromEnv(
+      { DZ_STORE: 'sqlite', DZ_SQLITE_PATH: ':memory:' },
+      {
+        loadBuiltin: () => {
+          throw new Error('no node:sqlite on Node 20');
+        },
+        loadBetterSqlite3: () => {
+          throw new Error('better-sqlite3 native binary missing');
+        },
+        logger: { warn: (m) => warnings2.push(m) },
+      },
+    );
+    expect(fallbackStore.kind).toBe('memory');
+    expect(warnings2.some((w) => w.includes('falling back to MemoryStore'))).toBe(true);
+    fallbackStore.close();
+
+    // File-backed SQLite store exercises WAL pragma + filtered queries
+    const dir = mkdtempSync(path.join(os.tmpdir(), 'dz-sqlite-'));
+    try {
+      const fileStore = new SqliteStore(path.join(dir, 'test.db'));
+      fileStore.setDefaultScenario('chargily', 'declined');
+      expect(fileStore.getDefaultScenario('chargily')).toBe('declined');
+      fileStore.appendRequestLog({
+        id: 'req_f1',
+        provider: 'chargily',
+        method: 'POST',
+        path: '/test',
+        headers: {},
+        query: {},
+        body: null,
+        statusCode: 500,
+        responseBody: { error: 'boom' },
+        scenario: 'gateway_500',
+        durationMs: 2,
+        timestamp: '2026-01-01T10:00:00.000Z',
+      });
+      expect(
+        fileStore.queryRequestLogs({
+          provider: 'chargily',
+          statusCode: 500,
+          since: '2026-01-01T09:00:00.000Z',
+          until: '2026-01-01T11:00:00.000Z',
+          limit: 5,
+        }),
+      ).toHaveLength(1);
+      expect(fileStore.deleteResource('chargily:checkouts', 'missing')).toBe(false);
+      fileStore.close();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 
@@ -490,6 +569,7 @@ describe('HTTP scenario middleware', () => {
     const ctx = { store, clock, rng, scenarios, timeoutMs: 20 };
 
     registerRequestAuditHook(app, ctx, 'chargily');
+    app.get('/plain', async () => 'pong');
     app.post('/test', async (req, reply) => {
       const resolved = scenarios.resolve({
         provider: 'chargily',
@@ -530,7 +610,73 @@ describe('HTTP scenario middleware', () => {
     expect(resolveBindHost('127.0.0.1')).toBe('127.0.0.1');
     expect(resolveBindHost()).toBe('127.0.0.1');
 
-    // Test network_drop over real loopback socket
+    // Test gateway_500, slow, array header, and network_drop over real loopback socket
+    const gwRes = await app.inject({
+      method: 'POST',
+      url: '/test',
+      headers: { 'x-dz-scenario': 'gateway_500' },
+    });
+    expect(gwRes.statusCode).toBe(500);
+
+    const prevHost = process.env.DZ_SANDBOX_HOST;
+    process.env.DZ_SANDBOX_HOST = '0.0.0.0';
+    expect(resolveBindHost()).toBe('0.0.0.0');
+    if (prevHost === undefined) delete process.env.DZ_SANDBOX_HOST;
+    else process.env.DZ_SANDBOX_HOST = prevHost;
+
+    // Exercise additional edge helpers (clock errors, redaction edge cases, scenario helpers, webhook failures)
+    expect((await app.inject({ method: 'GET', url: '/plain' })).body).toBe('pong');
+    expect(rng.getSeed()).toBe(1);
+    expect(rng.pick(['only'])).toBe('only');
+    expect(() => parseDurationMs('bad')).toThrow();
+    clock.schedule(5000, () => {});
+    expect(clock.getPendingTimers()).toHaveLength(1);
+    clock.reset();
+    expect(clock.getPendingTimers()).toHaveLength(0);
+
+    expect(redactBody({ secret: '1234', nested: [{ token: 'abcdef123456' }], count: 1 })).toEqual({
+      secret: '[REDACTED]',
+      nested: [{ token: '***3456' }],
+      count: 1,
+    });
+    expect(redactBody(42)).toBe(42);
+    expect(redactHeaders({ 'x-api-token': 'short', 'x-empty': undefined })).toEqual({
+      'x-api-token': '[REDACTED]',
+      'x-empty': '',
+    });
+
+    expect(() => scenarios.setSequence('chargily', [])).toThrow();
+    scenarios.setSequence('chargily', ['gateway_500', 'declined'], true);
+    expect(scenarios.resolve({ provider: 'chargily' }).name).toBe('gateway_500');
+    expect(scenarios.resolve({ provider: 'chargily' }).name).toBe('declined');
+    expect(scenarios.resolve({ provider: 'chargily' }).name).toBe('gateway_500');
+    expect(scenarios.clearSequence('chargily')).toBe(true);
+    expect(scenarios.clearResourceScenario('chargily', 'missing')).toBe(false);
+    expect(scenarios.hasDefinition('success')).toBe(true);
+    expect(scenarios.loadFromDirectory(path.join(os.tmpdir(), 'dz-nonexistent-dir-999'))).toEqual([]);
+
+    expect(isAllowedWebhookUrl('not-a-url')).toBe(false);
+    expect(isAllowedWebhookUrl('ftp://remote.example/hook')).toBe(false);
+    expect(isAllowedWebhookUrl('https://remote.example/hook', ['remote.example'])).toBe(true);
+    expect(isAllowedWebhookUrl('https://remote.example/hook', ['https://remote.example/'])).toBe(true);
+    expect(isAllowedWebhookUrl('https://other.example/hook', ['', 'remote.example'])).toBe(false);
+    const errDispatcher = new WebhookDispatcher(store, clock, rng, {
+      retryBackoffMs: [10],
+      fetchImpl: async () => {
+        throw new Error('ECONNREFUSED');
+      },
+    });
+    const [failedEntry] = await errDispatcher.dispatch({
+      provider: 'chargily',
+      eventType: 'checkout.paid',
+      targetUrl: 'http://127.0.0.1:9009/hook',
+      payload: { id: 'fail' },
+      secret: 'sec',
+      maxAttempts: 1,
+    });
+    expect(failedEntry?.status).toBe('failed');
+    await expect(errDispatcher.redeliver('missing_wh')).rejects.toThrow();
+
     await app.listen({ port: 0, host: '127.0.0.1' });
     const addr = app.server.address();
     if (addr && typeof addr === 'object') {
@@ -542,6 +688,7 @@ describe('HTTP scenario middleware', () => {
       ).rejects.toThrow();
     }
 
+    app.server.closeIdleConnections?.();
     await app.close();
   });
 });

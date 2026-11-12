@@ -247,6 +247,67 @@ describe('mock-satim end-to-end payment, cards, refunds, and error rules', () =>
       ).statusCode,
     ).toBe(500);
 
+    // 10. Validation (400), 404 not found, aliases, refund_failure, double_charge_attempt, partial_refund, HTML redirect
+    expect((await app.inject({ method: 'GET', url: '/payment/rest/register.do?amount=-1' })).statusCode).toBe(400);
+    expect((await app.inject({ method: 'GET', url: '/payment/rest/confirmOrder.do' })).statusCode).toBe(400);
+    expect((await app.inject({ method: 'GET', url: '/payment/rest/refund.do' })).statusCode).toBe(400);
+    expect((await app.inject({ method: 'POST', url: '/pay/satim/missing/action', payload: {} })).statusCode).toBe(404);
+
+    const rOk = await app.inject({
+      method: 'POST',
+      url: '/payment/rest/register.do',
+      payload: {
+        userName: 'm',
+        password: 'p',
+        orderNumber: 'ORD-HTML-1',
+        amount: 40000,
+        currency: '012',
+        returnUrl: 'http://127.0.0.1:3000/ok',
+        failUrl: 'http://127.0.0.1:3000/ko',
+        language: 'en',
+        jsonParams: JSON.stringify({ udf1: 'cust_1' }),
+      },
+    });
+    const ordOk = rOk.json().orderId as string;
+    expect((await app.inject({ method: 'GET', url: `/pay/satim/${ordOk}` })).body).toContain('SATIM');
+    const htmlSubmit = await app.inject({
+      method: 'POST',
+      url: `/pay/satim/${ordOk}/action`,
+      payload: { cardPan: '4000000000000001' },
+    });
+    expect(htmlSubmit.statusCode).toBe(302);
+    expect(htmlSubmit.headers.location).toContain('http://127.0.0.1:3000/ok');
+
+    expect((await app.inject({ method: 'GET', url: `/payment/rest/getOrderStatusExtended.do?userName=m&password=p&orderId=${ordOk}` })).json().orderStatus).toBe(2);
+    expect((await app.inject({ method: 'GET', url: `/payment/rest/acknowledgeTransaction.do?userName=m&password=p&orderId=${ordOk}` })).json().params.udf1).toBe('cust_1');
+
+    expect(
+      (await app.inject({
+        method: 'POST',
+        url: `/pay/satim/${ordOk}/action`,
+        headers: { accept: 'application/json', 'x-dz-scenario': 'double_charge_attempt' },
+        payload: { cardPan: '4000000000000001' },
+      })).statusCode,
+    ).toBe(409);
+
+    expect(
+      (await app.inject({
+        method: 'POST',
+        url: '/payment/rest/refund.do',
+        headers: { 'x-dz-scenario': 'refund_failure' },
+        payload: { userName: 'm', password: 'p', orderId: ordOk, amount: 10000 },
+      })).statusCode,
+    ).toBe(422);
+
+    const partial = await app.inject({
+      method: 'POST',
+      url: '/payment/rest/refund.do',
+      headers: { 'x-dz-scenario': 'partial_refund' },
+      payload: { userName: 'm', password: 'p', orderId: ordOk, amount: 40000 },
+    });
+    expect(partial.statusCode).toBe(200);
+    expect(partial.json().refundedAmount).toBe(20000);
+
     await app.close();
   });
 });

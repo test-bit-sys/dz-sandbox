@@ -4,6 +4,9 @@
   "description": "Chargily Pay v2 local mock server with hosted payment page and signed webhooks",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

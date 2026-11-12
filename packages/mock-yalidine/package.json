@@ -4,6 +4,9 @@
   "description": "Yalidine Express API v1 local mock server with geo dataset interface and virtual-clock parcel lifecycle simulator",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

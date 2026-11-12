@@ -4,6 +4,9 @@
   "description": "CLI and unified runner for dz-sandbox Algerian payment and delivery mocks",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "bin": {
     "dz-sandbox": "./dist/cli.js"
   },

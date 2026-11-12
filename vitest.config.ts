@@ -13,10 +13,36 @@ export default defineConfig({
       include: ['packages/*/src/**/*.ts'],
       exclude: ['packages/*/src/**/*.test.ts', 'packages/*/src/**/index.ts'],
       thresholds: {
+        // Global floor across all packages (including CLI runtime entry & control server)
         lines: 85,
         functions: 85,
         branches: 75,
         statements: 85,
+        // Strict >=85% across all 4 metrics specifically on core and provider mocks
+        'packages/core/src/**/*.ts': {
+          statements: 85,
+          branches: 85,
+          functions: 85,
+          lines: 85,
+        },
+        'packages/mock-chargily/src/**/*.ts': {
+          statements: 85,
+          branches: 85,
+          functions: 85,
+          lines: 85,
+        },
+        'packages/mock-satim/src/**/*.ts': {
+          statements: 85,
+          branches: 85,
+          functions: 85,
+          lines: 85,
+        },
+        'packages/mock-yalidine/src/**/*.ts': {
+          statements: 85,
+          branches: 85,
+          functions: 85,
+          lines: 85,
+        },
       },
     },
   },

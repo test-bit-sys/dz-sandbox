@@ -4,6 +4,9 @@
   "description": "Core scenario engine, virtual clock, seeded RNG, store, and webhook dispatcher for dz-sandbox",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

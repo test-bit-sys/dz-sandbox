@@ -68,7 +68,6 @@ describe('mock-yalidine contract fixtures', () => {
         }
       }
     }
-
     await app.close();
   });
 });
@@ -264,6 +263,67 @@ describe('mock-yalidine lifecycle simulator & delivery scenarios', () => {
       });
       expect(res.statusCode, scen).toBe(code);
     }
+
+    // 6. Auth, filters, single-object create, validation error paths, and 404 checks
+    scenarios.setDefault('yalidine', 'created_ok');
+    expect((await app.inject({ method: 'GET', url: '/v1/wilayas' })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'GET', url: '/v1/communes', headers: AUTH })).json().total_data).toBeGreaterThanOrEqual(19);
+    expect((await app.inject({ method: 'GET', url: '/v1/centers', headers: AUTH })).json().total_data).toBeGreaterThanOrEqual(8);
+    expect((await app.inject({ method: 'GET', url: '/v1/deliveryfees', headers: AUTH })).json().total_data).toBeGreaterThanOrEqual(8);
+    expect((await app.inject({ method: 'GET', url: '/v1/deliveryfees?from_wilaya_id=16&wilaya_id=16,31', headers: AUTH })).json().total_data).toBe(2);
+    expect((await app.inject({ method: 'GET', url: '/v1/parcels', headers: AUTH })).json().total_data).toBeGreaterThanOrEqual(4);
+    expect((await app.inject({ method: 'GET', url: '/v1/histories', headers: AUTH })).json().total_data).toBeGreaterThanOrEqual(4);
+    expect((await app.inject({ method: 'POST', url: '/v1/parcels', headers: AUTH, payload: [] })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'POST', url: '/v1/parcels', headers: AUTH, payload: { invalid: true } })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'POST', url: '/v1/parcels', headers: AUTH, payload: {
+      order_id: 'BAD-ORIG', firstname: 'A', familyname: 'B', contact_phone: '0550123456',
+      from_wilaya_id: 999, to_wilaya_id: 16, to_commune_name: 'Alger Centre', product_list: 'P', price: 100, address: 'X',
+    } })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'POST', url: '/v1/parcels', headers: AUTH, payload: {
+      order_id: 'BAD-DEST', firstname: 'A', familyname: 'B', contact_phone: '0550123456',
+      to_wilaya_id: 999, to_commune_name: 'Alger Centre', product_list: 'P', price: 100, address: 'X',
+    } })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'POST', url: '/v1/parcels', headers: AUTH, payload: {
+      order_id: 'BAD-NO-W', firstname: 'A', familyname: 'B', contact_phone: '0550123456',
+      to_commune_name: 'Alger Centre', product_list: 'P', price: 100, address: 'X',
+    } })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'POST', url: '/v1/parcels', headers: AUTH, payload: {
+      order_id: 'BAD-NO-C', firstname: 'A', familyname: 'B', contact_phone: '0550123456',
+      to_wilaya_id: 16, product_list: 'P', price: 100, address: 'X',
+    } })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'POST', url: '/v1/parcels', headers: AUTH, payload: {
+      order_id: 'BAD-ADDR', firstname: 'A', familyname: 'B', contact_phone: '0550123456',
+      to_wilaya_id: 16, to_commune_name: 'Alger Centre', product_list: 'P', price: 100, address: '   ',
+    } })).statusCode).toBe(422);
+
+    // Single object + freeshipping + parcel filters + histories without tracking + 404/422 PATCH/DELETE
+    const single = await app.inject({
+      method: 'POST',
+      url: '/v1/parcels',
+      headers: AUTH,
+      payload: {
+        order_id: 'SINGLE-1',
+        firstname: 'Sami',
+        familyname: 'B',
+        contact_phone: '0770112233',
+        to_wilaya_id: 16,
+        to_commune_name: 'Alger Centre',
+        product_list: 'Book',
+        price: 1500,
+        freeshipping: true,
+        address: 'Rue 1',
+      },
+    });
+    expect(single.statusCode).toBe(201);
+    const singleTrack = single.json().data[0].tracking as string;
+    expect(single.json().data[0].delivery_fee).toBe(0);
+    expect((await app.inject({ method: 'GET', url: '/v1/parcels?order_id=SINGLE-1&last_status=En+pr%C3%A9paration', headers: AUTH })).json().total_data).toBe(1);
+    expect((await app.inject({ method: 'PATCH', url: `/v1/parcels/${singleTrack}`, headers: AUTH, payload: { contact_phone: 'bad' } })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'PATCH', url: `/v1/parcels/${singleTrack}`, headers: AUTH, payload: { price: -10 } })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'GET', url: '/v1/parcels/yal-000000', headers: AUTH })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'PATCH', url: '/v1/parcels/yal-000000', headers: AUTH, payload: { price: 100 } })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'DELETE', url: '/v1/parcels/yal-000000', headers: AUTH })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'GET', url: '/v1/histories?status=Livr%C3%A9', headers: AUTH })).json().total_data).toBeGreaterThanOrEqual(2);
 
     await app.close();
   });

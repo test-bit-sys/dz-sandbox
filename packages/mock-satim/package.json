@@ -4,6 +4,9 @@
   "description": "SATIM e-payment local mock server with hosted card page and order state machine",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

@@ -8,28 +8,49 @@ import type {
   WebhookLogFilter,
 } from './types.js';
 
-interface SqlStatement {
+export interface SqlStatement {
   get(...params: unknown[]): unknown;
   all(...params: unknown[]): unknown[];
   run(...params: unknown[]): { changes?: number | bigint };
 }
 
-interface SqlDatabase {
+export interface SqlDatabase {
   exec(sql: string): void;
   prepare(sql: string): SqlStatement;
   close(): void;
 }
 
+export interface SqliteDriverOptions {
+  loadBuiltin?: () => { DatabaseSync: new (path: string) => SqlDatabase };
+  loadBetterSqlite3?: () => new (path: string) => SqlDatabase;
+  logger?: { warn: (msg: string) => void; info?: (msg: string) => void };
+}
+
 const require = createRequire(import.meta.url);
 
-function openSqliteDatabase(dbPath: string): SqlDatabase {
+export function openSqliteDatabase(
+  dbPath: string,
+  options: SqliteDriverOptions = {},
+): SqlDatabase {
+  const warn = options.logger?.warn ?? ((msg: string) => console.warn(msg));
+  const loadBuiltin =
+    options.loadBuiltin ??
+    (() =>
+      require('node:sqlite') as {
+        DatabaseSync: new (path: string) => SqlDatabase;
+      });
+  const loadBetter =
+    options.loadBetterSqlite3 ??
+    (() => require('better-sqlite3') as new (path: string) => SqlDatabase);
+
   try {
-    const sqlite = require('node:sqlite') as {
-      DatabaseSync: new (path: string) => SqlDatabase;
-    };
+    const sqlite = loadBuiltin();
     return new sqlite.DatabaseSync(dbPath);
-  } catch {
-    const BetterSqlite3 = require('better-sqlite3') as new (path: string) => SqlDatabase;
+  } catch (builtinErr) {
+    warn(
+      `[dz-sandbox] node:sqlite unavailable (${(builtinErr as Error).message}); falling back to better-sqlite3.`,
+    );
+    const BetterSqlite3 = loadBetter();
     return new BetterSqlite3(dbPath);
   }
 }
@@ -301,8 +322,8 @@ export class SqliteStore implements SandboxStore {
   readonly kind = 'sqlite' as const;
   private db: SqlDatabase;
 
-  constructor(dbPath = ':memory:') {
-    this.db = openSqliteDatabase(dbPath);
+  constructor(dbPath = ':memory:', driverOptions?: SqliteDriverOptions) {
+    this.db = openSqliteDatabase(dbPath, driverOptions);
     if (dbPath !== ':memory:') {
       this.db.exec('PRAGMA journal_mode = WAL;');
     }
@@ -653,11 +674,22 @@ export class SqliteStore implements SandboxStore {
   }
 }
 
-export function createStoreFromEnv(env: NodeJS.ProcessEnv = process.env): SandboxStore {
+export function createStoreFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+  driverOptions?: SqliteDriverOptions,
+): SandboxStore {
   const mode = (env.DZ_STORE ?? 'memory').toLowerCase();
   if (mode === 'sqlite') {
     const dbPath = env.DZ_SQLITE_PATH ?? './dz-sandbox.db';
-    return new SqliteStore(dbPath);
+    const warn = driverOptions?.logger?.warn ?? ((msg: string) => console.warn(msg));
+    try {
+      return new SqliteStore(dbPath, driverOptions);
+    } catch (err) {
+      warn(
+        `[dz-sandbox] Unable to initialize SQLite store (${(err as Error).message}); falling back to MemoryStore (state will not persist across restarts).`,
+      );
+      return new MemoryStore();
+    }
   }
   return new MemoryStore();
 }

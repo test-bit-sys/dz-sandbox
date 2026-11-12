@@ -396,7 +396,7 @@ describe('mock-chargily failure & webhook scenarios', () => {
     });
     expect(resDouble.statusCode).toBe(409);
 
-    // 9. Network scenarios on API calls
+    // 9. Network & validation error scenarios on API calls
     expect(
       (
         await app.inject({
@@ -415,6 +415,90 @@ describe('mock-chargily failure & webhook scenarios', () => {
         })
       ).statusCode,
     ).toBe(401);
+    expect((await app.inject({ method: 'GET', url: '/api/v2/balance' })).statusCode).toBe(401);
+
+    // Validation & 404 errors across endpoints + /test/api/v2 alias + AR/FR hosted pages
+    expect((await app.inject({ method: 'GET', url: '/test/api/v2/balance', headers })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'POST', url: '/api/v2/customers', headers, payload: { name: 123 } })).statusCode).toBe(422);
+    const custFull = await app.inject({ method: 'POST', url: '/api/v2/customers', headers, payload: { name: 'Karim', address: { address: 'Rue 1', state: 'Oran', country: 'DZ' } } });
+    const custFullId = custFull.json().id as string;
+    expect((await app.inject({ method: 'PATCH', url: `/api/v2/customers/${custFullId}`, headers, payload: { address: { address: 'Rue 2' } } })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'PATCH', url: `/api/v2/customers/${custFullId}`, headers, payload: { name: 999 } })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'GET', url: '/api/v2/customers', headers })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'GET', url: '/api/v2/customers/missing', headers })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'PATCH', url: '/api/v2/customers/missing', headers, payload: {} })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'DELETE', url: '/api/v2/customers/missing', headers })).statusCode).toBe(404);
+    const prodOk = await app.inject({ method: 'POST', url: '/api/v2/products', headers, payload: { name: 'Prod Valid' } });
+    const prodOkId = prodOk.json().id as string;
+    expect((await app.inject({ method: 'POST', url: `/api/v2/products/${prodOkId}`, headers, payload: { name: 999 } })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'GET', url: '/api/v2/products', headers })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'GET', url: '/api/v2/products/missing', headers })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'POST', url: '/api/v2/products', headers, payload: {} })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'POST', url: '/api/v2/products/missing', headers, payload: {} })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'DELETE', url: '/api/v2/products/missing', headers })).statusCode).toBe(404);
+    const priceOk = await app.inject({ method: 'POST', url: '/api/v2/prices', headers, payload: { amount: 1200, currency: 'dzd', product_id: prodOkId } });
+    const priceOkId = priceOk.json().id as string;
+    expect((await app.inject({ method: 'GET', url: '/api/v2/prices' })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'GET', url: '/api/v2/prices', headers })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'GET', url: `/api/v2/prices/${priceOkId}` })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'POST', url: `/api/v2/prices/${priceOkId}`, headers, payload: { metadata: 'bad' } })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'POST', url: '/api/v2/prices', headers, payload: {} })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'POST', url: '/api/v2/prices', headers, payload: { amount: 1000, currency: 'dzd', product_id: 'prod_missing' } })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'GET', url: '/api/v2/prices/missing', headers })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'POST', url: '/api/v2/prices/missing', headers, payload: {} })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'GET', url: '/api/v2/checkouts?per_page=1&page=1', headers })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'POST', url: '/api/v2/checkouts', headers, payload: { currency: 'dzd' } })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'POST', url: '/api/v2/checkouts', headers, payload: { items: [{ price: 'price_missing', quantity: 1 }], success_url: 'http://127.0.0.1/ok' } })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'GET', url: '/api/v2/checkouts/missing', headers })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'POST', url: '/api/v2/checkouts/missing/expire', headers })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'GET', url: '/api/v2/checkouts/missing/items', headers })).statusCode).toBe(404);
+    const plOk = await app.inject({ method: 'POST', url: '/api/v2/payment-links', headers, payload: { name: 'Link Valid', items: [{ price: priceOkId, quantity: 1 }] } });
+    const plOkId = plOk.json().id as string;
+    expect((await app.inject({ method: 'POST', url: `/api/v2/payment-links/${plOkId}`, headers, payload: { locale: 'xx' } })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'POST', url: '/api/v2/payment-links', headers, payload: {} })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'POST', url: '/api/v2/payment-links', headers, payload: { name: 'Bad', items: [{ price: 'price_missing', quantity: 1 }] } })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'POST', url: '/api/v2/payment-links/missing', headers, payload: {} })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'GET', url: '/api/v2/payment-links/missing/items', headers })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'GET', url: '/api/v2/customers' })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'GET', url: '/api/v2/products' })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'GET', url: '/api/v2/checkouts' })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'GET', url: '/api/v2/payment-links' })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'GET', url: `/api/v2/payment-links/${plOkId}` })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'POST', url: `/api/v2/payment-links/${plOkId}` })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'GET', url: `/api/v2/payment-links/${plOkId}/items` })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'GET', url: `/api/v2/checkouts/any` })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'POST', url: `/api/v2/checkouts/any/expire` })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'GET', url: `/api/v2/checkouts/any/items` })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'GET', url: `/api/v2/customers/${custFullId}` })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'PATCH', url: `/api/v2/customers/${custFullId}` })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'DELETE', url: `/api/v2/customers/${custFullId}` })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'GET', url: `/api/v2/products/${prodOkId}` })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'POST', url: `/api/v2/products/${prodOkId}` })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'DELETE', url: `/api/v2/products/${prodOkId}` })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'POST', url: `/api/v2/prices/${priceOkId}` })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'GET', url: '/pay/chargily/chk_missing' })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'POST', url: '/pay/chargily/chk_missing/action', payload: { action: 'success' } })).statusCode).toBe(404);
+
+    // Expired checkout cannot be paid or re-expired (422) & AR/FR hosted pages render cleanly
+    const chkAr = await app.inject({
+      method: 'POST',
+      url: '/api/v2/checkouts',
+      headers,
+      payload: { amount: 1500, currency: 'dzd', pass_fees_to_customer: true, payment_method: 'cib', success_url: 'http://127.0.0.1/ok', locale: 'ar' },
+    });
+    const chkArId = chkAr.json().id as string;
+    expect((await app.inject({ method: 'GET', url: `/pay/chargily/${chkArId}` })).body).toContain('dir="rtl"');
+    const chkFr = await app.inject({
+      method: 'POST',
+      url: '/api/v2/checkouts',
+      headers,
+      payload: { amount: 1500, currency: 'dzd', success_url: 'http://127.0.0.1/ok', locale: 'fr' },
+    });
+    expect((await app.inject({ method: 'GET', url: `/pay/chargily/${chkFr.json().id}` })).body).toContain('Payer maintenant');
+    expect((await app.inject({ method: 'POST', url: `/pay/chargily/${chkFr.json().id}/action`, payload: { action: 'declined' } })).statusCode).toBe(302);
+    await app.inject({ method: 'POST', url: `/api/v2/checkouts/${chkArId}/expire`, headers });
+    expect((await app.inject({ method: 'POST', url: `/api/v2/checkouts/${chkArId}/expire`, headers })).statusCode).toBe(422);
+    expect((await app.inject({ method: 'POST', url: `/pay/chargily/${chkArId}/action`, payload: { action: 'success' } })).statusCode).toBe(422);
 
     await app.close();
   });

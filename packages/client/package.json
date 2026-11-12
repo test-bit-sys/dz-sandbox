@@ -4,6 +4,9 @@
   "description": "Test helper client for dz-sandbox control plane (reset, scenarios, webhook waiting, virtual clock)",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

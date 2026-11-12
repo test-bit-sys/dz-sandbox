@@ -255,8 +255,6 @@ export function createChargilyServer(deps: ChargilyServerDeps): FastifyInstance 
     } else if (outcome === 'user_cancelled') {
       nextStatus = 'canceled';
       eventType = CHARGILY_SPEC.events.checkoutCanceled;
-    } else if (outcome === 'double_charge_attempt' && checkout.status === 'paid') {
-      return { checkout, outcome, httpStatus: 409 };
     }
 
     checkout.status = nextStatus;
