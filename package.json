@@ -12,11 +12,12 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "npm run build -w @dz-sandbox/core && npm run build --workspaces --if-present",
-    "typecheck": "npm run typecheck -w @dz-sandbox/core && npm run typecheck --workspaces --if-present",
+    "build": "npm run build -w @dz-sandbox/core && npm run build -w @dz-sandbox/control -w @dz-sandbox/mock-chargily -w @dz-sandbox/mock-satim -w @dz-sandbox/mock-yalidine -w @dz-sandbox/client && npm run build -w dz-sandbox",
+    "typecheck": "npm run typecheck -w @dz-sandbox/core && npm run typecheck -w @dz-sandbox/control -w @dz-sandbox/mock-chargily -w @dz-sandbox/mock-satim -w @dz-sandbox/mock-yalidine -w @dz-sandbox/client && npm run typecheck -w dz-sandbox",
     "lint": "eslint \"packages/*/src/**/*.ts\"",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:python": "python -m unittest discover -s packages/python-client/tests -v"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",

@@ -1,0 +1,60 @@
+{
+  "lang": "fr",
+  "dir": "ltr",
+  "brand": "dz-sandbox",
+  "tagline": "Testez ce qui échoue, pas seulement ce qui réussit",
+  "disclaimer": "Non officiel. Non affilié à Chargily, SATIM ou Yalidine. Comportement simulé.",
+  "themeToggle": "Changer de thème",
+  "resetBtn": "Tout réinitialiser",
+  "tabs": {
+    "overview": "Aperçu",
+    "requests": "Requêtes",
+    "webhooks": "Webhooks",
+    "scenarios": "Scénarios",
+    "preview": "Aperçu paiement",
+    "clock": "Horloge virtuelle"
+  },
+  "overview": {
+    "providers": "Fournisseurs actifs",
+    "activeScenario": "Scénario actif",
+    "status": "Statut",
+    "requestsTotal": "Total requêtes",
+    "webhooksTotal": "Total webhooks",
+    "clockNow": "Horloge virtuelle"
+  },
+  "requests": {
+    "filterProvider": "Filtrer par fournisseur",
+    "all": "Tous",
+    "copyCurl": "Copier cURL",
+    "copied": "Copié !",
+    "noData": "Aucune requête enregistrée."
+  },
+  "webhooks": {
+    "redeliver": "Renvoyer",
+    "triggerTitle": "Déclencher un événement",
+    "triggerBtn": "Déclencher",
+    "signature": "Signature",
+    "attempts": "Tentatives",
+    "noData": "Aucun webhook enregistré."
+  },
+  "scenarios": {
+    "setProvider": "Définir scénario fournisseur",
+    "apply": "Appliquer",
+    "customTitle": "Créer un scénario personnalisé (JSON)",
+    "createBtn": "Enregistrer",
+    "builtIn": "Intégré",
+    "custom": "Personnalisé"
+  },
+  "preview": {
+    "title": "Aperçu des pages de paiement hébergées",
+    "desc": "Ouvrez une session Chargily ou SATIM en attente pour tester le flux.",
+    "openUrl": "Ouvrir la page"
+  },
+  "clock": {
+    "current": "Temps virtuel actuel",
+    "pending": "Minuteurs en attente",
+    "advance": "Avancer l'horloge",
+    "reset": "Réinitialiser l'horloge",
+    "customDuration": "Durée (ex : 2h, 30m)"
+  }
+}

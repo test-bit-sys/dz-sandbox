@@ -12,6 +12,7 @@ import {
   type WebhookDispatcher,
 } from '@dz-sandbox/core';
 import { buildControlOpenApiSpec } from './openapi.js';
+import { DASHBOARD_LOCALES, renderDashboardHtml, type DashboardLang } from './dashboard.js';
 
 export type TriggerHandler = (opts: {
   provider: string;
@@ -98,9 +99,16 @@ export function createControlServer(deps: ControlServerDeps): FastifyInstance {
       reply.type('text/html; charset=utf-8').send(deps.dashboardHtml());
       return;
     }
-    reply.type('text/html; charset=utf-8').send(
-      '<!doctype html><html><head><meta charset="utf-8"><title>dz-sandbox Control</title></head><body><h1>dz-sandbox Control Plane</h1><p>API available under <a href="/__control/state">/__control/state</a> and <a href="/__control/openapi.json">/__control/openapi.json</a>.</p></body></html>',
-    );
+    reply.type('text/html; charset=utf-8').send(renderDashboardHtml());
+  });
+
+  app.get<{ Params: { lang: string } }>('/locales/:lang.json', async (request, reply) => {
+    const key = request.params.lang as DashboardLang;
+    const loc = DASHBOARD_LOCALES[key];
+    if (!loc) {
+      return reply.code(404).send({ error: 'LOCALE_NOT_FOUND' });
+    }
+    return loc;
   });
 
   app.get('/__control/state', async (): Promise<SandboxStateSnapshot & { pendingTimersList: unknown[] }> => {

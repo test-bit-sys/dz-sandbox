@@ -1,0 +1,60 @@
+{
+  "lang": "ar",
+  "dir": "rtl",
+  "brand": "dz-sandbox",
+  "tagline": "اختبر ما يفشل، وليس فقط ما ينجح",
+  "disclaimer": "غير رسمي. غير تابع لـ Chargily أو SATIM أو Yalidine. السلوك محاكى وقد يختلف عن الإنتاج.",
+  "themeToggle": "تبديل المظهر",
+  "resetBtn": "إعادة ضبط الكل",
+  "tabs": {
+    "overview": "نظرة عامة",
+    "requests": "الطلبات",
+    "webhooks": "الويب هوك",
+    "scenarios": "السيناريوهات",
+    "preview": "معاينة الدفع",
+    "clock": "الساعة الافتراضية"
+  },
+  "overview": {
+    "providers": "المزودون النشطون",
+    "activeScenario": "السيناريو الحالي",
+    "status": "الحالة",
+    "requestsTotal": "إجمالي الطلبات",
+    "webhooksTotal": "إجمالي الويب هوك",
+    "clockNow": "الوقت الافتراضي"
+  },
+  "requests": {
+    "filterProvider": "تصفية حسب المزود",
+    "all": "الكل",
+    "copyCurl": "نسخ cURL",
+    "copied": "تم النسخ!",
+    "noData": "لا توجد طلبات مسجلة بعد."
+  },
+  "webhooks": {
+    "redeliver": "إعادة الإرسال",
+    "triggerTitle": "تشغيل حدث يدوياً",
+    "triggerBtn": "إرسال حدث",
+    "signature": "التوقيع",
+    "attempts": "المحاولات",
+    "noData": "لا توجد أحداث ويب هوك مسجلة بعد."
+  },
+  "scenarios": {
+    "setProvider": "تعيين سيناريو المزود",
+    "apply": "تطبيق",
+    "customTitle": "إنشاء سيناريو مخصص (JSON)",
+    "createBtn": "تسجيل السيناريو",
+    "builtIn": "مدمج",
+    "custom": "مخصص"
+  },
+  "preview": {
+    "title": "معاينة صفحات الدفع المستضافة",
+    "desc": "افتح أي عملية دفع معلّقة لـ Chargily أو SATIM للمعاينة التفاعلية.",
+    "openUrl": "فتح رابط الدفع"
+  },
+  "clock": {
+    "current": "الوقت الافتراضي الحالي",
+    "pending": "المؤقتات المجدولة",
+    "advance": "تقديم الوقت",
+    "reset": "إعادة ضبط الساعة",
+    "customDuration": "مدة مخصصة (مثال: 2h أو 30m)"
+  }
+}

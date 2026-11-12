@@ -1,0 +1,29 @@
+{
+  "name": "dz-sandbox",
+  "version": "0.1.0",
+  "description": "CLI and unified runner for dz-sandbox Algerian payment and delivery mocks",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "dz-sandbox": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/cli.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dz-sandbox/control": "0.1.0",
+    "@dz-sandbox/core": "0.1.0",
+    "@dz-sandbox/mock-chargily": "0.1.0",
+    "@dz-sandbox/mock-satim": "0.1.0",
+    "@dz-sandbox/mock-yalidine": "0.1.0"
+  }
+}

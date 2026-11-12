@@ -121,6 +121,13 @@ describe('Control API', () => {
     // Additional control edge routes & validation paths
     const rootHtml = await app.inject({ method: 'GET', url: '/' });
     expect(rootHtml.statusCode).toBe(200);
+    expect(rootHtml.body).toContain('dir="rtl"');
+    expect(rootHtml.body).toContain('dz-sandbox');
+
+    const arLoc = await app.inject({ method: 'GET', url: '/locales/ar.json' });
+    expect(arLoc.statusCode).toBe(200);
+    expect(arLoc.json().dir).toBe('rtl');
+    expect((await app.inject({ method: 'GET', url: '/locales/xx.json' })).statusCode).toBe(404);
 
     const badScenario = await app.inject({
       method: 'POST',

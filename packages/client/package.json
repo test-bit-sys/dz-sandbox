@@ -1,0 +1,19 @@
+{
+  "name": "@dz-sandbox/client",
+  "version": "0.1.0",
+  "description": "Test helper client for dz-sandbox control plane (reset, scenarios, webhook waiting, virtual clock)",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit"
+  }
+}

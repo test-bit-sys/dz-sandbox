@@ -1,0 +1,60 @@
+{
+  "lang": "en",
+  "dir": "ltr",
+  "brand": "dz-sandbox",
+  "tagline": "Test what fails, not just what succeeds",
+  "disclaimer": "Unofficial. Not affiliated with Chargily, SATIM, or Yalidine. Behavior is simulated.",
+  "themeToggle": "Toggle Theme",
+  "resetBtn": "Reset All",
+  "tabs": {
+    "overview": "Overview",
+    "requests": "Requests",
+    "webhooks": "Webhooks",
+    "scenarios": "Scenarios",
+    "preview": "Payment Preview",
+    "clock": "Virtual Clock"
+  },
+  "overview": {
+    "providers": "Active Providers",
+    "activeScenario": "Active Scenario",
+    "status": "Status",
+    "requestsTotal": "Total Requests",
+    "webhooksTotal": "Total Webhooks",
+    "clockNow": "Virtual Clock"
+  },
+  "requests": {
+    "filterProvider": "Filter by provider",
+    "all": "All",
+    "copyCurl": "Copy cURL",
+    "copied": "Copied!",
+    "noData": "No requests recorded yet."
+  },
+  "webhooks": {
+    "redeliver": "Redeliver",
+    "triggerTitle": "Manual Event Trigger",
+    "triggerBtn": "Trigger Event",
+    "signature": "Signature",
+    "attempts": "Attempts",
+    "noData": "No webhooks recorded yet."
+  },
+  "scenarios": {
+    "setProvider": "Set Provider Scenario",
+    "apply": "Apply",
+    "customTitle": "Create Custom Scenario (JSON)",
+    "createBtn": "Register Scenario",
+    "builtIn": "Built-in",
+    "custom": "Custom"
+  },
+  "preview": {
+    "title": "Hosted Payment Page Preview",
+    "desc": "Open a pending Chargily or SATIM hosted checkout page in an inline preview.",
+    "openUrl": "Load Preview"
+  },
+  "clock": {
+    "current": "Current Virtual Time",
+    "pending": "Pending Timers",
+    "advance": "Advance Clock",
+    "reset": "Reset Clock",
+    "customDuration": "Custom duration (e.g. 2h or 30m)"
+  }
+}

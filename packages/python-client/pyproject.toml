@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dz-sandbox"
+version = "0.1.0"
+description = "Minimal Python helper client for dz-sandbox local payment and delivery sandbox"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["dz_sandbox*"]
