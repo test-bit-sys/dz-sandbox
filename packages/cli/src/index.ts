@@ -1,3 +1,3 @@
 export * from './runtime.js';
 export * from './doctor.js';
-export * from './cli.js';
+export * from './commands.js';

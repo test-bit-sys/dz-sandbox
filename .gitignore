@@ -13,4 +13,5 @@ Thumbs.db
 *.tgz
 __pycache__/
 *.pyc
+.dz-sandbox.pid
 algeria-geo-main/

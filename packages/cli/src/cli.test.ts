@@ -1,10 +1,9 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { runCli } from './cli.js';
-import { runDoctor } from './doctor.js';
-import { startSandboxRuntime, type SandboxRuntime } from './runtime.js';
+import { runCli, runDoctor, startSandboxRuntime, type SandboxRuntime } from './index.js';
 
 describe('dz-sandbox CLI & runtime', () => {
   let runtime: SandboxRuntime | undefined;
@@ -96,5 +95,11 @@ describe('dz-sandbox CLI & runtime', () => {
     );
     expect(docNoDocker.dockerVersion).toBeNull();
     expect(docNoDocker.nodeOk).toBe(true);
+
+    const distCli = path.resolve(import.meta.dirname, '..', 'dist', 'cli.js');
+    if (existsSync(distCli)) {
+      const helpOut = execFileSync(process.execPath, [distCli, '--help'], { encoding: 'utf8' });
+      expect(helpOut).toContain('dz-sandbox start');
+    }
   });
 });
