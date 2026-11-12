@@ -48,6 +48,9 @@ jobs:
       - name: Run Python client tests
         run: npm run test:python
 
+      - name: Run example smoke suite
+        run: npm run examples:smoke
+
       - name: Verify fixture provenance metadata
         run: |
           node -e "

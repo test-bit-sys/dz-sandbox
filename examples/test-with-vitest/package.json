@@ -7,7 +7,7 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "@dz-sandbox/client": "^0.1.0",
+    "@dz-sandbox/client": "0.1.0",
     "vitest": "^3.0.9"
   }
 }

@@ -9,6 +9,7 @@ it('catches duplicate Chargily webhooks and verifies virtual clock delay', async
   await sandbox.scenario('chargily', 'duplicate_webhook');
 
   const chargilyBase = process.env.CHARGILY_BASE_URL ?? 'http://127.0.0.1:4001/api/v2';
+  const chargilyOrigin = new URL(chargilyBase).origin;
   const createRes = await fetch(`${chargilyBase}/checkouts`, {
     method: 'POST',
     headers: {
@@ -27,9 +28,9 @@ it('catches duplicate Chargily webhooks and verifies virtual clock delay', async
   const checkout = (await createRes.json()) as { id: string };
 
   // Complete checkout through simulated hosted action
-  await fetch(`http://127.0.0.1:4001/pay/chargily/${checkout.id}/action`, {
+  await fetch(`${chargilyOrigin}/pay/chargily/${checkout.id}/action`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify({ action: 'success' }),
   });
 

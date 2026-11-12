@@ -6,7 +6,8 @@
   "license": "MIT",
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "examples/*"
   ],
   "engines": {
     "node": ">=20.0.0"
@@ -17,7 +18,8 @@
     "lint": "eslint \"packages/*/src/**/*.ts\"",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:python": "python -m unittest discover -s packages/python-client/tests -v"
+    "test:python": "python -m unittest discover -s packages/python-client/tests -v",
+    "examples:smoke": "node scripts/examples-smoke.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",

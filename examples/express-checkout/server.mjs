@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { pathToFileURL } from 'node:url';
 import express from 'express';
 
 const CHARGILY_BASE = process.env.CHARGILY_BASE_URL ?? 'http://127.0.0.1:4001/api/v2';
@@ -17,6 +18,7 @@ export function createExampleApp(opts = {}) {
 
   const app = express();
   const orders = new Map();
+  const seenWebhookEventIds = new Set();
   let fulfillments = 0;
 
   // Capture raw body for exact HMAC-SHA256 verification
@@ -28,10 +30,87 @@ export function createExampleApp(opts = {}) {
     }),
   );
 
+  function verifyChargilyWebhook(req, res) {
+    const sig = req.get('signature') ?? '';
+    const raw = req.rawBody ?? JSON.stringify(req.body);
+    const expected = crypto.createHmac('sha256', secret).update(raw, 'utf8').digest('hex');
+
+    if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
+      res.status(403).json({ error: 'INVALID_SIGNATURE' });
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * NAIVE handler (deliberately buggy): processes every `checkout.paid` webhook
+   * without checking prior fulfillment state or event ID. Under `duplicate_webhook`,
+   * fulfillment count reaches 2+ and double-ships / double-credits the customer!
+   */
+  function handleNaiveWebhook(req, res) {
+    if (!verifyChargilyWebhook(req, res)) return;
+    const event = req.body;
+    const orderId = event?.data?.metadata?.orderId;
+    const order = orders.get(orderId);
+
+    if (order && event.type === 'checkout.paid') {
+      order.status = 'paid';
+      order.fulfillments += 1;
+      fulfillments += 1;
+    } else if (order && (event.type === 'checkout.failed' || event.type === 'checkout.canceled')) {
+      order.status = 'failed';
+    }
+
+    return res.status(200).json({ ok: true, handler: 'naive', fulfillments: order?.fulfillments ?? 0 });
+  }
+
+  /**
+   * IDEMPOTENT handler (production-safe): deduplicates both by webhook `event.id`
+   * AND by terminal `order.status === 'paid'` guard. Duplicate or retried deliveries
+   * return 200 `{ deduplicated: true }` without mutating state a second time.
+   */
+  function handleIdempotentWebhook(req, res) {
+    if (!verifyChargilyWebhook(req, res)) return;
+    const event = req.body;
+    const eventId = typeof event?.id === 'string' ? event.id : undefined;
+    const orderId = event?.data?.metadata?.orderId;
+    const order = orders.get(orderId);
+
+    if (order && event.type === 'checkout.paid') {
+      if ((eventId && seenWebhookEventIds.has(eventId)) || order.status === 'paid') {
+        return res.status(200).json({
+          ok: true,
+          handler: 'idempotent',
+          deduplicated: true,
+          fulfillments: order.fulfillments,
+        });
+      }
+      if (eventId) seenWebhookEventIds.add(eventId);
+      order.status = 'paid';
+      order.fulfillments += 1;
+      fulfillments += 1;
+    } else if (order && (event.type === 'checkout.failed' || event.type === 'checkout.canceled')) {
+      order.status = 'failed';
+    }
+
+    return res.status(200).json({
+      ok: true,
+      handler: 'idempotent',
+      deduplicated: false,
+      fulfillments: order?.fulfillments ?? 0,
+    });
+  }
+
   app.post('/orders', async (req, res) => {
     const amount = Number(req.body?.amount ?? 2500);
+    const handlerMode =
+      req.body?.handler === 'idempotent' || (req.body?.handler !== 'naive' && enforceIdempotency)
+        ? 'idempotent'
+        : 'naive';
     const orderId = `ord_${orders.size + 1}`;
     const selfBase = opts.selfBase ?? `http://127.0.0.1:${PORT}`;
+    const webhookPath =
+      handlerMode === 'idempotent' ? '/webhooks/chargily/idempotent' : '/webhooks/chargily/naive';
 
     const resp = await fetch(`${chargilyBase}/checkouts`, {
       method: 'POST',
@@ -45,7 +124,7 @@ export function createExampleApp(opts = {}) {
         payment_method: req.body?.payment_method ?? 'edahabia',
         success_url: `${selfBase}/success?order=${orderId}`,
         failure_url: `${selfBase}/failure?order=${orderId}`,
-        webhook_endpoint: `${selfBase}/webhooks/chargily`,
+        webhook_endpoint: `${selfBase}${webhookPath}`,
         metadata: { orderId },
       }),
     });
@@ -58,42 +137,27 @@ export function createExampleApp(opts = {}) {
     const checkout = await resp.json();
     orders.set(orderId, {
       orderId,
+      handlerMode,
       checkoutId: checkout.id,
       amount,
       status: 'pending',
       fulfillments: 0,
     });
 
-    return res.status(201).json({ orderId, checkout_url: checkout.checkout_url, checkoutId: checkout.id });
+    return res.status(201).json({
+      orderId,
+      handlerMode,
+      checkout_url: checkout.checkout_url,
+      checkoutId: checkout.id,
+      webhook_endpoint: `${selfBase}${webhookPath}`,
+    });
   });
 
-  app.post('/webhooks/chargily', (req, res) => {
-    const sig = req.get('signature') ?? '';
-    const raw = req.rawBody ?? JSON.stringify(req.body);
-    const expected = crypto.createHmac('sha256', secret).update(raw, 'utf8').digest('hex');
-
-    if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
-      return res.status(403).json({ error: 'INVALID_SIGNATURE' });
-    }
-
-    const event = req.body;
-    const orderId = event?.data?.metadata?.orderId;
-    const order = orders.get(orderId);
-
-    if (order && event.type === 'checkout.paid') {
-      if (enforceIdempotency && order.status === 'paid') {
-        return res.status(200).json({ ok: true, deduplicated: true });
-      }
-      // Without idempotency guard, duplicate_webhook increments fulfillments twice!
-      order.status = 'paid';
-      order.fulfillments += 1;
-      fulfillments += 1;
-    } else if (order && (event.type === 'checkout.failed' || event.type === 'checkout.canceled')) {
-      order.status = 'failed';
-    }
-
-    return res.status(200).json({ ok: true });
-  });
+  app.post('/webhooks/chargily/naive', handleNaiveWebhook);
+  app.post('/webhooks/chargily/idempotent', handleIdempotentWebhook);
+  app.post('/webhooks/chargily', (req, res) =>
+    enforceIdempotency ? handleIdempotentWebhook(req, res) : handleNaiveWebhook(req, res),
+  );
 
   app.post('/satim/orders', async (req, res) => {
     const amountDzd = Number(req.body?.amount ?? 2000);
@@ -137,7 +201,7 @@ export function createExampleApp(opts = {}) {
     });
     const ack = await fetch(`${satimBase}/confirmOrder.do?${qs.toString()}`).then((r) => r.json());
     const order = orders.get(orderNum);
-    if (order && ack.errorCode === '0' && ack.orderStatus === 2) {
+    if (order && (ack.errorCode === 0 || ack.errorCode === '0') && ack.orderStatus === 2) {
       order.status = 'paid';
       order.fulfillments += 1;
       fulfillments += 1;
@@ -155,7 +219,7 @@ export function createExampleApp(opts = {}) {
   return { app, orders };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const { app } = createExampleApp();
   app.listen(PORT, '127.0.0.1', () => {
     console.log(`Express checkout example listening on http://127.0.0.1:${PORT}`);
