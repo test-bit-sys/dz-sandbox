@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+.env
+.env.local
+.DS_Store
+Thumbs.db
+*.tgz

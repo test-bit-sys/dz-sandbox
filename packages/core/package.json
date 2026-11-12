@@ -1,0 +1,27 @@
+{
+  "name": "@dz-sandbox/core",
+  "version": "0.1.0",
+  "description": "Core scenario engine, virtual clock, seeded RNG, store, and webhook dispatcher for dz-sandbox",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fastify": "^5.2.1",
+    "yaml": "^2.7.1",
+    "zod": "^3.24.2"
+  },
+  "optionalDependencies": {
+    "better-sqlite3": "^11.9.1"
+  }
+}
