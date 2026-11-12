@@ -35,11 +35,11 @@ Official reference: SATIM / GIE Monétique Merchant Technical Integration Guide 
 
 | Endpoint / Feature | Implemented | Status | Source / Notes |
 | --- | --- | --- | --- |
-| `GET/POST register.do` | Planned | Unverified | Public references cite `userName`, `password`, `orderNumber`, `amount` (centimes), `currency` (`012`), `returnUrl`, `failUrl`, `language`, `jsonParams` (`force_terminal_id`, `udf1`..`udf5`). Exact bank-specific path prefix and required `jsonParams` must be checked against SATIM guide |
-| Hosted payment page (`formUrl` redirect) | Planned | Unverified | Simulated local HTML form with fake test card numbers; real SATIM/3DS UI differs |
-| `GET/POST confirmOrder.do` / `getOrderStatusExtended.do` / `acknowledgeTransaction.do` | Planned | Unverified | Endpoint name varies by SATIM integration version (`acknowledgeTransaction.do` vs `confirmOrder.do` vs `getOrderStatusExtended.do`). Configurable in `satim.spec.ts` |
-| `GET/POST refund.do` | Planned | Unverified | Parameters `userName`, `password`, `orderId`, `amount`; exact partial refund rules & error codes need official SATIM guide |
-| `errorCode`, `actionCode`, `orderStatus`, `respCode` tables | Planned | Unverified | Common SmartVista/SATIM codes (`orderStatus`: 0,1,2,3,4,6; `errorCode`: 0,1,4,5,6; `actionCode`: 0). Full bank-specific `actionCode` & `respCode` mappings must be verified from official SATIM PDF |
+| `GET/POST register.do` | Yes | Unverified | Public references cite `userName`, `password`, `orderNumber`, `amount` (centimes), `currency` (`012`), `returnUrl`, `failUrl`, `language`, `jsonParams`. Exact bank-specific path prefix and required `jsonParams` must be checked against SATIM guide |
+| Hosted payment page (`formUrl` redirect) | Yes | Unverified | Simulated local HTML form with fake test card numbers (`4000000000000001`..`05`); real SATIM/3DS UI differs |
+| `GET/POST confirmOrder.do` / `getOrderStatusExtended.do` / `acknowledgeTransaction.do` | Yes | Unverified | Endpoint name varies by SATIM integration version (`acknowledgeTransaction.do` vs `confirmOrder.do` vs `getOrderStatusExtended.do`). Configurable in `satim.spec.ts` |
+| `GET/POST refund.do` | Yes | Unverified | Parameters `userName`, `password`, `orderId`, `amount`; exact partial refund rules & error codes need official SATIM guide |
+| `errorCode`, `actionCode`, `orderStatus`, `respCode` tables | Yes | Unverified | Common SmartVista/SATIM codes (`orderStatus`: 0,1,2,3,4,6; `errorCode`: 0,1,3,4,5,6,7; `actionCode`: 0). Full bank-specific `actionCode` & `respCode` mappings must be verified from official SATIM PDF |
 
 ## 3. Yalidine Express (`mock-yalidine`)
 

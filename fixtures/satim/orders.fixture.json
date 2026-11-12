@@ -1,0 +1,46 @@
+{
+  "provider": "satim",
+  "verified": false,
+  "source": "UNVERIFIED: Common SATIM / SmartVista REST e-payment pattern (register.do, getOrderStatusExtended.do, refund.do). Verify exact codes and fields against official acquiring bank SATIM Technical Guide PDF.",
+  "cases": [
+    {
+      "name": "register_order",
+      "method": "POST",
+      "path": "/payment/rest/register.do",
+      "body": {
+        "userName": "test_merchant",
+        "password": "test_password",
+        "orderNumber": "SATIM-ORD-1",
+        "amount": 150000,
+        "currency": "012",
+        "returnUrl": "http://127.0.0.1:3000/satim/return",
+        "failUrl": "http://127.0.0.1:3000/satim/fail",
+        "language": "fr"
+      },
+      "expectedStatus": 200,
+      "requiredKeys": ["errorCode", "orderId", "formUrl"]
+    },
+    {
+      "name": "reject_unknown_currency",
+      "method": "POST",
+      "path": "/payment/rest/register.do",
+      "body": {
+        "userName": "test_merchant",
+        "password": "test_password",
+        "orderNumber": "SATIM-ORD-2",
+        "amount": 150000,
+        "currency": "840",
+        "returnUrl": "http://127.0.0.1:3000/satim/return"
+      },
+      "expectedStatus": 400,
+      "requiredKeys": ["errorCode", "errorMessage"]
+    },
+    {
+      "name": "reject_missing_params",
+      "method": "GET",
+      "path": "/payment/rest/register.do?userName=test",
+      "expectedStatus": 400,
+      "requiredKeys": ["errorCode", "errorMessage"]
+    }
+  ]
+}

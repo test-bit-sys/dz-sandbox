@@ -1,0 +1,25 @@
+{
+  "name": "@dz-sandbox/mock-satim",
+  "version": "0.1.0",
+  "description": "SATIM e-payment local mock server with hosted card page and order state machine",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dz-sandbox/core": "0.1.0",
+    "@fastify/formbody": "^8.0.2",
+    "fastify": "^5.2.1",
+    "zod": "^3.24.2"
+  }
+}
