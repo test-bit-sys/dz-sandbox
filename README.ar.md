@@ -67,6 +67,8 @@ hooks = client.wait_for_webhook(provider="chargily", count=2)
 | **Chargily Pay v2** | `@dz-sandbox/mock-chargily` | **Verified / Partial** | مسارات العملاء/المنتجات/الأسعار/الـ Checkout وتوقيع HMAC-SHA256 مؤكدة عبر الحزمة الرسمية `@chargily/chargily-pay@2.1.0`؛ معادلة الرسوم وبعض أخطاء 4xx مُحاكاة | [chargily.spec.ts](./packages/mock-chargily/src/chargily.spec.ts) |
 | **SATIM** | `@dz-sandbox/mock-satim` | **Unverified** | تدفق التسجيل -> صفحة البطاقات الوهمية (`4000000000000001`..`05`) -> التأكيد/الاسترجاع؛ المسارات البنكية والأكواد التفصيلية تنتظر الدليل الرسمي | [satim.spec.ts](./packages/mock-satim/src/satim.spec.ts) |
 | **Yalidine Express** | `@dz-sandbox/mock-yalidine` | **Partial / Unverified** | استيراد 69 ولاية (`era: 48\|58\|69`) و1,541 بلدية (AR/FR/EN دون الإحداثيات) من `algeria-geo`؛ 9 مكاتب Stopdesk وترويسات المعدل تنتظر عينات حقيقية | [yalidine.spec.ts](./packages/mock-yalidine/src/yalidine.spec.ts) |
+| **ZR Express** | `@dz-sandbox/mock-zrexpress` | **هيكل أولي (غير مؤكد)** | هيكل الحزمة ومحرك السيناريوهات جاهزان؛ يرجع `501 NOT_IMPLEMENTED_AWAITING_SPEC` حتى توفر وثائق رسمية أو عينات حقيقية منقحة | [zrexpress.spec.ts](./packages/mock-zrexpress/src/zrexpress.spec.ts) |
+| **Maystro Delivery** | `@dz-sandbox/mock-maystro` | **هيكل أولي (غير مؤكد)** | هيكل الحزمة ومحرك السيناريوهات جاهزان؛ يرجع `501 NOT_IMPLEMENTED_AWAITING_SPEC` حتى توفر وثائق رسمية أو عينات حقيقية منقحة | [maystro.spec.ts](./packages/mock-maystro/src/maystro.spec.ts) |
 
 السجل الكامل لحالة المواصفات: [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md).
 

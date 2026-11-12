@@ -73,6 +73,27 @@ Last ~15 lines of real output:
 ```
 Result: Exit 0 (`Test Files 11 passed (11)`, `Tests 47 passed (47)`; `core/src` 96.53% / 86.38% / 97.56% / 96.53%; `openapi-mock.ts` 95.72% / 84.45% / 100% / 95.72%).
 
+### STEP 4: Honest Scaffolds (`@dz-sandbox/mock-zrexpress` & `@dz-sandbox/mock-maystro`)
+
+Command:
+```bash
+npm run typecheck && npm run lint && npm run test:coverage
+```
+Last ~15 lines of real output:
+```text
+ mock-yalidine/src |   99.72 |    90.38 |   96.96 |   99.72 |                   
+  ....generated.ts |     100 |      100 |     100 |     100 |                   
+  geo-dataset.ts   |   98.72 |    93.75 |   96.29 |   98.72 | 155-156           
+  lifecycle.ts     |     100 |    94.44 |     100 |     100 | 174               
+  server.ts        |     100 |    88.09 |     100 |     100 | ...02,431,447,450 
+  yalidine.spec.ts |     100 |      100 |     100 |     100 |                   
+ ...-zrexpress/src |     100 |      100 |     100 |     100 |                   
+  server.ts        |     100 |      100 |     100 |     100 |                   
+  ...press.spec.ts |     100 |      100 |     100 |     100 |                   
+-------------------|---------|----------|---------|---------|-------------------
+```
+Result: Exit 0 (`Test Files 13 passed (13)`, `Tests 49 passed (49)`; both scaffolds at 100% / 100% / 100% / 100%).
+
 ---
 
 ## 2. Checks Marked `NOT RUN` Locally (and Why)

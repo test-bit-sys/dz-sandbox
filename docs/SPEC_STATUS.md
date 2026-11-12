@@ -59,6 +59,19 @@ Official reference: `https://api.yalidine.app/v1/` (Yalidine Merchant Developer 
 
 ---
 
+## 3b. ZR Express & Maystro Delivery (Scaffolds — Unverified)
+
+Config files:
+- `packages/mock-zrexpress/src/zrexpress.spec.ts`
+- `packages/mock-maystro/src/maystro.spec.ts`
+
+| Endpoint / Feature | Implemented | Status | Source / Notes |
+| --- | --- | --- | --- |
+| `GET /health` + scenario fault middleware | Yes | Verified (internal) | Returns `{ status: 'ok', scaffold: true, verified: false }` |
+| Provider parcel/pickup/tracking endpoints | **No** (returns `501 NOT_IMPLEMENTED_AWAITING_SPEC`) | Unverified (Scaffold) | Intentionally unimplemented until official API docs or sanitized captures (`fixtures/{zrexpress,maystro}/captured/`) are provided. Zero endpoints or field names were fabricated |
+
+---
+
 ## 4. Docs & Fixtures Needed From Maintainer
 
 To upgrade entries from `Unverified` / `Partial` to `Verified`, please provide:
@@ -72,3 +85,5 @@ To upgrade entries from `Unverified` / `Partial` to `Verified`, please provide:
    - Clarification on whether Yalidine provides webhook callbacks in v1.
 4. **Algeria Geo Dataset (`algeria-geo`):**
    - Administrative wilayas (69) and communes (1,541) from user-supplied `algeria-geo` are now integrated via `scripts/import-geo.mjs`. Official Yalidine per-commune `has_stop_desk`, delivery zone tiers, and `/v1/centers` IDs still require captured Yalidine API v1 responses.
+5. **ZR Express & Maystro Delivery:**
+   - Official merchant API documentation or sanitized captured exchanges (`fixtures/zrexpress/captured/`, `fixtures/maystro/captured/`) showing auth headers, base URL/endpoints, parcel creation fields, status enums, and error envelopes before implementing routes beyond `501 NOT_IMPLEMENTED_AWAITING_SPEC`.

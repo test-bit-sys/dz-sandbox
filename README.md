@@ -67,6 +67,8 @@ hooks = client.wait_for_webhook(provider="chargily", count=2)
 | **Chargily Pay v2** | `@dz-sandbox/mock-chargily` | **Verified / Partial** | Customer/product/price/checkout flow & HMAC-SHA256 `signature` verified end-to-end against official `@chargily/chargily-pay@2.1.0`; fee formula & some 4xx envelopes simulated | [chargily.spec.ts](./packages/mock-chargily/src/chargily.spec.ts) |
 | **SATIM** | `@dz-sandbox/mock-satim` | **Unverified** | Register -> hosted fake cards (`4000000000000001`..`05`) -> confirm/refund state machine; bank-specific paths, `jsonParams` & error codes require official PDF | [satim.spec.ts](./packages/mock-satim/src/satim.spec.ts) |
 | **Yalidine Express** | `@dz-sandbox/mock-yalidine` | **Partial / Unverified** | 69 wilayas (`era: 48\|58\|69`) & 1,541 communes (AR/FR/EN, coordinates excluded) imported from user-supplied `algeria-geo`; CRUD/lifecycle simulated, 9 centers & rate headers await live captures | [yalidine.spec.ts](./packages/mock-yalidine/src/yalidine.spec.ts) |
+| **ZR Express** | `@dz-sandbox/mock-zrexpress` | **Scaffold (Unverified)** | Package skeleton & scenario middleware wired; returns `501 NOT_IMPLEMENTED_AWAITING_SPEC` until official docs or sanitized captures are added | [zrexpress.spec.ts](./packages/mock-zrexpress/src/zrexpress.spec.ts) |
+| **Maystro Delivery** | `@dz-sandbox/mock-maystro` | **Scaffold (Unverified)** | Package skeleton & scenario middleware wired; returns `501 NOT_IMPLEMENTED_AWAITING_SPEC` until official docs or sanitized captures are added | [maystro.spec.ts](./packages/mock-maystro/src/maystro.spec.ts) |
 
 Full honesty ledger: [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md).
 

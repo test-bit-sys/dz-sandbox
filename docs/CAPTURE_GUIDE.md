@@ -161,3 +161,23 @@ node scripts/redact-fixture.mjs raw-satim-register.json fixtures/satim/captured/
 
 > [!IMPORTANT]
 > Never record HTTP requests while entering a real debit/CIB/Edahabia card on production SATIM. Only capture using bank-issued SATIM test cards on the SATIM UAT/integration environment, and scrub any masked PAN (`****`), `approvalCode`, IP address, or merchant credential from the JSON before committing.
+
+---
+
+## 4. ZR Express & Maystro Delivery (`fixtures/zrexpress/captured/` & `fixtures/maystro/captured/`)
+
+Both `@dz-sandbox/mock-zrexpress` and `@dz-sandbox/mock-maystro` are currently **honest scaffolds** returning `501 NOT_IMPLEMENTED_AWAITING_SPEC` because zero official API specs or sanitized captures exist in the repository.
+
+When merchant credentials and official API base URLs are available:
+
+1. Point `dz-sandbox record` at the official upstream sandbox/integration URL:
+   ```bash
+   npx dz-sandbox record --provider zrexpress --upstream https://YOUR_ZREXPRESS_API_URL --out ./fixtures/zrexpress/captured
+   npx dz-sandbox record --provider maystro   --upstream https://YOUR_MAYSTRO_API_URL   --out ./fixtures/maystro/captured
+   ```
+2. Capture at minimum:
+   - Authentication headers & unauthenticated `401` error response
+   - Parcel creation (`POST`) + validation failure (`400`/`422`)
+   - Parcel status / tracking lookup (`GET`) and cancellation/deletion
+   - Shipping fees / wilaya/commune lookup (if offered)
+3. Run `npx dz-sandbox fixtures validate ./fixtures`, manually confirm zero recipient phone numbers, addresses, or API tokens remain, and open a PR referencing [`docs/SPEC_STATUS.md`](SPEC_STATUS.md).
