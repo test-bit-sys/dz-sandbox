@@ -1,0 +1,12 @@
+dz-sandbox Third-Party Data Notice
+=================================
+
+1. Algerian Administrative Geo Dataset (`packages/mock-yalidine/src/algeria-geo.generated.ts`)
+   Imported via `scripts/import-geo.mjs` from `algeria-geo` (MIT License, Copyright (c) 2026 test-bit-sys).
+   Administrative wilaya/commune codes, post codes, and Arabic/French/English names originate from
+   legislative texts and executive decrees of the People's Democratic Republic of Algeria (69 wilayas,
+   1,541 communes).
+
+   Geographic coordinates (OpenStreetMap ODbL 1.0) and map boundaries from the upstream archive are
+   intentionally excluded from `dz-sandbox` so the repository distribution remains strictly under the
+   MIT License.

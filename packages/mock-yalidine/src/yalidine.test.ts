@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import fc from 'fast-check';
@@ -10,6 +11,7 @@ import {
   VirtualClock,
   WebhookDispatcher,
 } from '@dz-sandbox/core';
+import { MinimalAlgeriaGeoDataset } from './geo-dataset.js';
 import { createYalidineServer } from './server.js';
 import { YALIDINE_SPEC } from './yalidine.spec.js';
 
@@ -76,12 +78,63 @@ describe('mock-yalidine geo endpoints, validation, and parcel CRUD', () => {
   it('serves wilayas, communes, centers, deliveryfees and enforces strict parcel validation', async () => {
     const { app } = setupYalidine();
 
-    expect((await app.inject({ method: 'GET', url: '/health' })).json().dataset.complete).toBe(false);
+    const health = (await app.inject({ method: 'GET', url: '/health' })).json();
+    expect(health.dataset.complete).toBe(true);
+    expect(health.dataset.totalWilayasIncluded).toBe(69);
+    expect(health.dataset.totalCommunesIncluded).toBe(1541);
     expect((await app.inject({ method: 'GET', url: '/v1/wilayas?id=16', headers: AUTH })).json().data).toHaveLength(1);
-    expect((await app.inject({ method: 'GET', url: '/v1/communes?wilaya_id=16', headers: AUTH })).json().data.length).toBeGreaterThanOrEqual(3);
+    expect((await app.inject({ method: 'GET', url: '/v1/communes?wilaya_id=16', headers: AUTH })).json().total_data).toBeGreaterThanOrEqual(50);
     expect((await app.inject({ method: 'GET', url: '/v1/centers?wilaya_id=31', headers: AUTH })).json().data).toHaveLength(1);
-    expect((await app.inject({ method: 'GET', url: '/v1/deliveryfees', headers: AUTH })).json().data.length).toBe(8);
+    expect((await app.inject({ method: 'GET', url: '/v1/deliveryfees', headers: AUTH })).json().data.length).toBe(69);
     expect((await app.inject({ method: 'GET', url: '/v1/deliveryfees?from_wilaya_id=16&to_wilaya_id=999', headers: AUTH })).statusCode).toBe(422);
+
+    // Supports Arabic + French wilaya/commune names including era 58/69 wilayas & MinimalAlgeriaGeoDataset fallback
+    const arabicParcel = await app.inject({
+      method: 'POST',
+      url: '/v1/parcels',
+      headers: AUTH,
+      payload: [{
+        order_id: 'AR-58-1',
+        from_wilaya_name: 'الجزائر',
+        firstname: 'Sami',
+        familyname: 'Benali',
+        contact_phone: '0550998877',
+        address: 'حي المنيعة',
+        to_wilaya_name: 'المنيعة',
+        to_commune_name: 'المنيعة',
+        product_list: 'Router',
+        price: 6200,
+      }],
+    });
+    expect(arabicParcel.statusCode).toBe(201);
+
+    const era69Parcel = await app.inject({
+      method: 'POST',
+      url: '/v1/parcels',
+      headers: AUTH,
+      payload: [{
+        order_id: 'FR-69-1',
+        from_wilaya_id: 16,
+        firstname: 'Nabil',
+        familyname: 'Haddad',
+        contact_phone: '+213661223344',
+        address: 'Centre Ville',
+        to_wilaya_id: 69,
+        to_commune_name: 'El Abiodh Sidi Cheikh',
+        product_list: 'Solar Kit',
+        price: 12000,
+      }],
+    });
+    expect(era69Parcel.statusCode).toBe(201);
+
+    const minimalDs = new MinimalAlgeriaGeoDataset();
+    expect(minimalDs.meta.complete).toBe(false);
+    expect(minimalDs.findWilaya('Alger')?.id).toBe(16);
+    expect(minimalDs.findCommune(16, 'Hydra')?.id).toBe(1603);
+    expect(minimalDs.getCommunes()).toHaveLength(19);
+    expect(minimalDs.getCenters(16)).toHaveLength(2);
+    expect(minimalDs.findCenter(310201)?.wilaya_id).toBe(31);
+    expect(minimalDs.getDeliveryFee(16, 31)?.home_fee).toBe(800);
 
     // Mismatched commune for wilaya
     const badCommune = await app.inject({
@@ -343,5 +396,24 @@ describe('mock-yalidine lifecycle simulator & delivery scenarios', () => {
         expect(YALIDINE_SPEC.phoneRegex.test(bad)).toBe(false);
       }),
     );
+  });
+
+  it('rejects duplicate or orphan commune codes in import-geo Zod schema', () => {
+    const scriptCheck = `
+      import { validateAndTransformGeo } from './scripts/import-geo.mjs';
+      let failed = false;
+      try {
+        validateAndTransformGeo(
+          [{ code: '16', name_ar: 'الجزائر', name_fr: 'Alger', era: 48 }],
+          [{ code: '1601', wilaya_code: '99', name_ar: 'بلدية', name_fr: 'Commune' }]
+        );
+      } catch {
+        failed = true;
+      }
+      if (!failed) process.exit(2);
+    `;
+    execFileSync(process.execPath, ['--input-type=module', '-e', scriptCheck], {
+      cwd: path.resolve(__dirname, '../../..'),
+    });
   });
 });

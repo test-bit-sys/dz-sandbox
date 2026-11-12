@@ -7,7 +7,7 @@ import {
   type SandboxContext,
   type WebhookDispatcher,
 } from '@dz-sandbox/core';
-import { MinimalAlgeriaGeoDataset, type GeoDataset } from './geo-dataset.js';
+import { FullAlgeriaGeoDataset, type GeoDataset } from './geo-dataset.js';
 import {
   HISTORY_NS,
   PARCEL_NS,
@@ -71,7 +71,7 @@ function paginateYalidine<T>(items: T[], pageRaw?: string, pageSizeRaw?: string)
 
 export function createYalidineServer(deps: YalidineServerDeps): FastifyInstance {
   const { ctx, webhooks } = deps;
-  const dataset = deps.dataset ?? new MinimalAlgeriaGeoDataset();
+  const dataset = deps.dataset ?? new FullAlgeriaGeoDataset();
   const app = Fastify({ logger: false, bodyLimit: 1024 * 1024 });
   registerRequestAuditHook(app, ctx, 'yalidine');
 

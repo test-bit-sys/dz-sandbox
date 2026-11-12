@@ -1,6 +1,11 @@
+import { GENERATED_COMMUNES, GENERATED_WILAYAS } from './algeria-geo.generated.js';
+
 export interface WilayaRecord {
   id: number;
   name: string;
+  name_ar?: string;
+  name_en?: string;
+  era?: 48 | 58 | 69;
   zone: number;
   is_deliverable: boolean;
 }
@@ -8,8 +13,12 @@ export interface WilayaRecord {
 export interface CommuneRecord {
   id: number;
   name: string;
+  name_ar?: string;
+  name_en?: string;
   wilaya_id: number;
   wilaya_name: string;
+  wilaya_id_58?: number;
+  post_code?: string;
   has_stop_desk: boolean;
   is_deliverable: boolean;
 }
@@ -44,8 +53,8 @@ export interface GeoDatasetMetadata {
 
 /**
  * Clean interface for Algerian administrative geo data.
- * Allows swapping the built-in minimal verified subset with a full 58/69-wilaya
- * `algeria-geo` package when available.
+ * Allows swapping the built-in minimal verified subset with the full 69-wilaya
+ * imported `algeria-geo` dataset.
  */
 export interface GeoDataset {
   readonly meta: GeoDatasetMetadata;
@@ -91,7 +100,7 @@ const MINIMAL_COMMUNES: CommuneRecord[] = [
   { id: 3103, name: 'Es Senia', wilaya_id: 31, wilaya_name: 'Oran', has_stop_desk: false, is_deliverable: true },
 ];
 
-const MINIMAL_CENTERS: CenterRecord[] = [
+const SIMULATED_CENTERS: CenterRecord[] = [
   { center_id: 160101, name: 'Agence Alger Centre', address: 'Rue Didouche Mourad, Alger', wilaya_id: 16, wilaya_name: 'Alger', commune_id: 1601, commune_name: 'Alger Centre' },
   { center_id: 160201, name: 'Agence Bab Ezzouar', address: 'Quartier Business, Bab Ezzouar', wilaya_id: 16, wilaya_name: 'Alger', commune_id: 1602, commune_name: 'Bab Ezzouar' },
   { center_id: 310201, name: 'Agence Bir El Djir', address: 'Boulevard Millénium, Oran', wilaya_id: 31, wilaya_name: 'Oran', commune_id: 3102, commune_name: 'Bir El Djir' },
@@ -103,12 +112,91 @@ const MINIMAL_CENTERS: CenterRecord[] = [
   { center_id: 150101, name: 'Agence Tizi Ouzou', address: 'Nouvelle Ville, Tizi Ouzou', wilaya_id: 15, wilaya_name: 'Tizi Ouzou', commune_id: 1501, commune_name: 'Tizi Ouzou' },
 ];
 
-function normalizeName(value: string): string {
+export function normalizeGeoName(value: string): string {
   return value
     .trim()
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\u064B-\u065F\u0670]/g, '')
+    .replace(/[أإآٱ]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .replace(/['’`-]/g, ' ')
+    .replace(/\s+/g, ' ');
+}
+
+function wilayaMatchesName(w: WilayaRecord, normTarget: string): boolean {
+  if (normalizeGeoName(w.name) === normTarget) return true;
+  if (w.name_ar && normalizeGeoName(w.name_ar) === normTarget) return true;
+  if (w.name_en && normalizeGeoName(w.name_en) === normTarget) return true;
+  return false;
+}
+
+function communeMatchesName(c: CommuneRecord, normTarget: string): boolean {
+  if (normalizeGeoName(c.name) === normTarget) return true;
+  if (c.name_ar && normalizeGeoName(c.name_ar) === normTarget) return true;
+  if (c.name_en && normalizeGeoName(c.name_en) === normTarget) return true;
+  return false;
+}
+
+function buildDatasetImpl(
+  wilayas: readonly WilayaRecord[],
+  communes: readonly CommuneRecord[],
+  centers: readonly CenterRecord[],
+  meta: GeoDatasetMetadata,
+): GeoDataset {
+  const findWilaya = (idOrName: number | string): WilayaRecord | undefined => {
+    if (typeof idOrName === 'number') {
+      return wilayas.find((w) => w.id === idOrName);
+    }
+    const asNum = Number.parseInt(idOrName, 10);
+    if (!Number.isNaN(asNum) && String(asNum) === idOrName.trim()) {
+      return wilayas.find((w) => w.id === asNum);
+    }
+    const norm = normalizeGeoName(idOrName);
+    return wilayas.find((w) => wilayaMatchesName(w, norm));
+  };
+
+  return {
+    meta,
+    getWilayas: () => [...wilayas],
+    findWilaya,
+    getCommunes: (wilayaId?: number) => {
+      if (wilayaId === undefined) return [...communes];
+      return communes.filter((c) => c.wilaya_id === wilayaId);
+    },
+    findCommune: (wilayaId: number, communeName: string) => {
+      const norm = normalizeGeoName(communeName);
+      return communes.find(
+        (c) =>
+          (c.wilaya_id === wilayaId || c.wilaya_id_58 === wilayaId) &&
+          communeMatchesName(c, norm),
+      );
+    },
+    getCenters: (wilayaId?: number) => {
+      if (wilayaId === undefined) return [...centers];
+      return centers.filter((c) => c.wilaya_id === wilayaId);
+    },
+    findCenter: (centerId: number) => centers.find((c) => c.center_id === centerId),
+    getDeliveryFee: (fromWilayaId: number, toWilayaId: number) => {
+      const dest = findWilaya(toWilayaId);
+      if (!dest || !findWilaya(fromWilayaId)) return undefined;
+      const sameWilaya = fromWilayaId === toWilayaId;
+      const homeFee = sameWilaya ? 400 : 600 + dest.zone * 100;
+      const stopdeskFee = Math.max(300, homeFee - 200);
+      return {
+        from_wilaya_id: fromWilayaId,
+        to_wilaya_id: toWilayaId,
+        wilaya_id: dest.id,
+        wilaya_name: dest.name,
+        home_fee: homeFee,
+        stopdesk_fee: stopdeskFee,
+        fee: homeFee,
+        retour_fee: 300,
+      };
+    },
+  };
 }
 
 export class MinimalAlgeriaGeoDataset implements GeoDataset {
@@ -116,61 +204,35 @@ export class MinimalAlgeriaGeoDataset implements GeoDataset {
     complete: false,
     totalWilayasIncluded: MINIMAL_WILAYAS.length,
     totalCommunesIncluded: MINIMAL_COMMUNES.length,
-    note: 'Minimal verified subset (8 wilayas, 19 communes, 9 stopdesk centers). Full 58/69 wilayas & ~1541 communes await external algeria-geo dataset.',
+    note: 'Minimal verified subset (8 wilayas, 19 communes, 9 stopdesk centers).',
   };
 
-  getWilayas(): WilayaRecord[] {
-    return MINIMAL_WILAYAS;
-  }
+  private readonly impl = buildDatasetImpl(MINIMAL_WILAYAS, MINIMAL_COMMUNES, SIMULATED_CENTERS, this.meta);
 
-  findWilaya(idOrName: number | string): WilayaRecord | undefined {
-    if (typeof idOrName === 'number') {
-      return MINIMAL_WILAYAS.find((w) => w.id === idOrName);
-    }
-    const asNum = Number.parseInt(idOrName, 10);
-    if (!Number.isNaN(asNum) && String(asNum) === idOrName.trim()) {
-      return MINIMAL_WILAYAS.find((w) => w.id === asNum);
-    }
-    const norm = normalizeName(idOrName);
-    return MINIMAL_WILAYAS.find((w) => normalizeName(w.name) === norm);
-  }
+  getWilayas = () => this.impl.getWilayas();
+  findWilaya = (idOrName: number | string) => this.impl.findWilaya(idOrName);
+  getCommunes = (wilayaId?: number) => this.impl.getCommunes(wilayaId);
+  findCommune = (wilayaId: number, communeName: string) => this.impl.findCommune(wilayaId, communeName);
+  getCenters = (wilayaId?: number) => this.impl.getCenters(wilayaId);
+  findCenter = (centerId: number) => this.impl.findCenter(centerId);
+  getDeliveryFee = (fromId: number, toId: number) => this.impl.getDeliveryFee(fromId, toId);
+}
 
-  getCommunes(wilayaId?: number): CommuneRecord[] {
-    if (wilayaId === undefined) return MINIMAL_COMMUNES;
-    return MINIMAL_COMMUNES.filter((c) => c.wilaya_id === wilayaId);
-  }
+export class FullAlgeriaGeoDataset implements GeoDataset {
+  readonly meta: GeoDatasetMetadata = {
+    complete: true,
+    totalWilayasIncluded: GENERATED_WILAYAS.length,
+    totalCommunesIncluded: GENERATED_COMMUNES.length,
+    note: `Full ${GENERATED_WILAYAS.length}-wilaya (eras 48/58/69) & ${GENERATED_COMMUNES.length}-commune dataset imported via scripts/import-geo.mjs (AR/FR/EN names; coordinates excluded).`,
+  };
 
-  findCommune(wilayaId: number, communeName: string): CommuneRecord | undefined {
-    const norm = normalizeName(communeName);
-    return MINIMAL_COMMUNES.find(
-      (c) => c.wilaya_id === wilayaId && normalizeName(c.name) === norm,
-    );
-  }
+  private readonly impl = buildDatasetImpl(GENERATED_WILAYAS, GENERATED_COMMUNES, SIMULATED_CENTERS, this.meta);
 
-  getCenters(wilayaId?: number): CenterRecord[] {
-    if (wilayaId === undefined) return MINIMAL_CENTERS;
-    return MINIMAL_CENTERS.filter((c) => c.wilaya_id === wilayaId);
-  }
-
-  findCenter(centerId: number): CenterRecord | undefined {
-    return MINIMAL_CENTERS.find((c) => c.center_id === centerId);
-  }
-
-  getDeliveryFee(fromWilayaId: number, toWilayaId: number): DeliveryFeeRecord | undefined {
-    const dest = this.findWilaya(toWilayaId);
-    if (!dest || !this.findWilaya(fromWilayaId)) return undefined;
-    const sameWilaya = fromWilayaId === toWilayaId;
-    const homeFee = sameWilaya ? 400 : 600 + dest.zone * 100;
-    const stopdeskFee = Math.max(300, homeFee - 200);
-    return {
-      from_wilaya_id: fromWilayaId,
-      to_wilaya_id: toWilayaId,
-      wilaya_id: dest.id,
-      wilaya_name: dest.name,
-      home_fee: homeFee,
-      stopdesk_fee: stopdeskFee,
-      fee: homeFee,
-      retour_fee: 300,
-    };
-  }
+  getWilayas = () => this.impl.getWilayas();
+  findWilaya = (idOrName: number | string) => this.impl.findWilaya(idOrName);
+  getCommunes = (wilayaId?: number) => this.impl.getCommunes(wilayaId);
+  findCommune = (wilayaId: number, communeName: string) => this.impl.findCommune(wilayaId, communeName);
+  getCenters = (wilayaId?: number) => this.impl.getCenters(wilayaId);
+  findCenter = (centerId: number) => this.impl.findCenter(centerId);
+  getDeliveryFee = (fromId: number, toId: number) => this.impl.getDeliveryFee(fromId, toId);
 }

@@ -49,8 +49,8 @@ Official reference: `https://api.yalidine.app/v1/` (Yalidine Merchant Developer 
 | Endpoint / Feature | Implemented | Status | Source / Notes |
 | --- | --- | --- | --- |
 | Auth (`X-API-ID`, `X-API-TOKEN`) | Yes | Partial | Public docs; exact 401/403 & 429 rate-limit headers (`Retry-After` / `X-RateLimit-*`) unverified |
-| `GET /v1/wilayas` | Yes | Partial | Minimal verified subset (8 wilayas) shipped behind `GeoDataset`; full 58/69 wilayas pending `algeria-geo` import |
-| `GET /v1/communes` | Yes | Partial | `algeria-geo` not present in workspace — 19 verified communes shipped behind `GeoDataset` interface; missing communes explicitly marked in `/health` and `_dataset_meta` |
+| `GET /v1/wilayas` | Yes | Partial | All 69 wilayas (eras 48/58/69) with AR/FR/EN names imported via `scripts/import-geo.mjs` from user-supplied `algeria-geo`; exact Yalidine pagination/field envelope remains partial until live capture |
+| `GET /v1/communes` | Yes | Partial | All 1,541 communes with AR/FR/EN names & post codes imported via `scripts/import-geo.mjs` from user-supplied `algeria-geo` (coordinates excluded); exact Yalidine field envelope remains partial until live capture |
 | `GET /v1/centers` | Yes | Unverified | 9 stopdesk centers mapped to the 8 core wilayas; exact center IDs & fields need official response fixture |
 | `GET /v1/deliveryfees` | Yes | Partial | Query `from_wilaya_id`, `to_wilaya_id`, `wilaya_id`; exact per-commune fee breakdown (`retour_fee`, `cod_percentage`, `oversize_fee`) unverified |
 | `POST/GET/PATCH/DELETE /v1/parcels` | Yes | Partial | Public docs (bulk array or object create, tracking IDs `yal-XXXXXX`, `is_stopdesk`, `stopdesk_id`, `price`, `freeshipping`); exact validation errors & PATCH rules unverified |
@@ -71,4 +71,4 @@ To upgrade entries from `Unverified` / `Partial` to `Verified`, please provide:
    - Official Yalidine API v1 docs or recorded JSON responses for `/v1/parcels` (create, get, patch, delete), `/v1/histories`, `/v1/centers`, `/v1/deliveryfees`, and rate-limit headers.
    - Clarification on whether Yalidine provides webhook callbacks in v1.
 4. **Algeria Geo Dataset (`algeria-geo`):**
-   - Full 58/69 wilayas + communes JSON/TS dataset if available, so `GeoDataset` can be populated completely without guessing commune names or IDs.
+   - Administrative wilayas (69) and communes (1,541) from user-supplied `algeria-geo` are now integrated via `scripts/import-geo.mjs`. Official Yalidine per-commune `has_stop_desk`, delivery zone tiers, and `/v1/centers` IDs still require captured Yalidine API v1 responses.
