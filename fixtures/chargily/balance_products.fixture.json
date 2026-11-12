@@ -1,0 +1,24 @@
+{
+  "provider": "chargily",
+  "verified": true,
+  "source": "@chargily/chargily-pay@2.1.0 (lib/classes/client.js & lib/types/data.d.ts)",
+  "cases": [
+    {
+      "name": "get_balance",
+      "method": "GET",
+      "path": "/api/v2/balance",
+      "headers": { "authorization": "Bearer test_sk_fixture_key" },
+      "expectedStatus": 200,
+      "requiredKeys": ["entity", "livemode", "wallets"]
+    },
+    {
+      "name": "create_product",
+      "method": "POST",
+      "path": "/api/v2/products",
+      "headers": { "authorization": "Bearer test_sk_fixture_key" },
+      "body": { "name": "Pack Dev DZ", "description": "Abonnement mensuel" },
+      "expectedStatus": 201,
+      "requiredKeys": ["id", "entity", "livemode", "name", "images", "created_at"]
+    }
+  ]
+}

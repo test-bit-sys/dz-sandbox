@@ -1,0 +1,28 @@
+{
+  "name": "@dz-sandbox/mock-chargily",
+  "version": "0.1.0",
+  "description": "Chargily Pay v2 local mock server with hosted payment page and signed webhooks",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dz-sandbox/core": "0.1.0",
+    "@fastify/formbody": "^8.0.2",
+    "fastify": "^5.2.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@chargily/chargily-pay": "^2.1.0"
+  }
+}

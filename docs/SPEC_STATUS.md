@@ -15,18 +15,18 @@ This document is the single source of truth for what is **verified** against off
 ## 1. Chargily Pay v2 (`mock-chargily`)
 
 Config file: `packages/mock-chargily/src/chargily.spec.ts`  
-Official reference: `https://dev.chargily.com/pay-v2/` and `@chargily/chargily-pay` npm package.
+Official reference: `https://dev.chargily.com/pay-v2/` and `@chargily/chargily-pay@2.1.0` npm package (`lib/classes/client.js`, `lib/types/data.d.ts`, `lib/utils/index.js`).
 
 | Endpoint / Feature | Implemented | Status | Source / Notes |
 | --- | --- | --- | --- |
-| Auth (`Authorization: Bearer <secret>`) | Planned | Partial | Public docs (`dev.chargily.com/pay-v2`); exact error JSON shape on 401 needs fixture verification |
-| `GET /api/v2/balance` | Planned | Partial | Public docs; wallet array fields (`currency`, `amount`, `ready_for_payout`, `on_hold`) unverified |
-| `POST/GET/POST(update)/DELETE /api/v2/customers` | Planned | Partial | Public docs; exact pagination & validation error envelope unverified |
-| `POST/GET/POST(update)/DELETE /api/v2/products` | Planned | Partial | Public docs; exact optional fields unverified |
-| `POST/GET/POST(update) /api/v2/prices` | Planned | Partial | Public docs; exact currency/amount rules unverified |
-| `POST/GET/POST(expire) /api/v2/checkouts` | Planned | Partial | Public docs (`items`, `amount`, `currency`, `payment_method`, `success_url`, `failure_url`, `webhook_endpoint`, `metadata`); exact checkout object fields need fixture verification |
-| `POST/GET/POST(update) /api/v2/payment-links` & `/items` | Planned | Partial | Public docs; exact item response schema unverified |
-| Webhook signature (`signature` header, HMAC-SHA256 hex of raw JSON body using secret key) | Planned | Partial | Public Chargily Pay v2 webhook docs; exact event wrapper (`entity`, `id`, `type`, `data`) needs live payload fixture |
+| Auth (`Authorization: Bearer <secret>`) | Yes | Verified | Confirmed in `@chargily/chargily-pay@2.1.0` (`Authorization: Bearer ...`) |
+| `GET /api/v2/balance` | Yes | Verified | `Balance` / `Wallet` shape verified in `lib/types/data.d.ts`; exact 401/error JSON envelope unverified |
+| `POST/GET/PATCH/DELETE /api/v2/customers` | Yes | Verified | Endpoints & `Customer` / `ListResponse` / `DeleteItemResponse` verified in `@chargily/chargily-pay@2.1.0` |
+| `POST/GET/POST(update)/DELETE /api/v2/products` & `/prices` | Yes | Verified | Endpoints & `Product` / `ProductPrice` shapes verified in `@chargily/chargily-pay@2.1.0` |
+| `POST/GET/POST(update) /api/v2/prices` | Yes | Verified | Endpoints & `Price` shape verified in `@chargily/chargily-pay@2.1.0` |
+| `POST/GET/POST(expire) /api/v2/checkouts` & `/items` | Yes | Verified | Endpoints & `Checkout` / `CheckoutItem` shapes verified in `@chargily/chargily-pay@2.1.0`; fee formula simulated in `chargily.spec.ts` |
+| `POST/GET/POST(update) /api/v2/payment-links` & `/items` | Yes | Verified | Endpoints & `PaymentLink` / `PaymentLinkItem` shapes verified in `@chargily/chargily-pay@2.1.0` |
+| Webhook signature (`signature` header, HMAC-SHA256 hex of raw JSON body using secret key) | Yes | Verified | Exact `verifySignature()` algorithm confirmed in `@chargily/chargily-pay@2.1.0` `lib/utils/index.js`; webhook event names (`checkout.paid`, `checkout.failed`, `checkout.canceled`) partial/configurable in `chargily.spec.ts` |
 
 ## 2. SATIM E-Payment (`mock-satim`)
 

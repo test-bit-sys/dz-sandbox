@@ -1,0 +1,52 @@
+{
+  "provider": "chargily",
+  "verified": true,
+  "source": "@chargily/chargily-pay@2.1.0 (lib/classes/client.js & lib/types/data.d.ts) + https://dev.chargily.com/pay-v2/",
+  "cases": [
+    {
+      "name": "create_checkout_direct_amount",
+      "method": "POST",
+      "path": "/api/v2/checkouts",
+      "headers": {
+        "authorization": "Bearer test_sk_fixture_key"
+      },
+      "body": {
+        "amount": 2500,
+        "currency": "dzd",
+        "payment_method": "edahabia",
+        "success_url": "http://127.0.0.1:3000/success",
+        "failure_url": "http://127.0.0.1:3000/fail",
+        "locale": "ar",
+        "metadata": { "order_id": "ORD-101" }
+      },
+      "expectedStatus": 201,
+      "requiredKeys": ["id", "entity", "livemode", "amount", "currency", "status", "checkout_url", "created_at", "updated_at"]
+    },
+    {
+      "name": "reject_unauthenticated_checkout",
+      "method": "POST",
+      "path": "/api/v2/checkouts",
+      "headers": {},
+      "body": {
+        "amount": 1000,
+        "currency": "dzd",
+        "success_url": "http://127.0.0.1:3000/success"
+      },
+      "expectedStatus": 401,
+      "requiredKeys": ["message"]
+    },
+    {
+      "name": "reject_invalid_checkout_payload",
+      "method": "POST",
+      "path": "/api/v2/checkouts",
+      "headers": {
+        "authorization": "Bearer test_sk_fixture_key"
+      },
+      "body": {
+        "success_url": "not-a-url"
+      },
+      "expectedStatus": 422,
+      "requiredKeys": ["message"]
+    }
+  ]
+}
