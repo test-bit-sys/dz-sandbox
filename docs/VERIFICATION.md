@@ -129,6 +129,31 @@ Built 34 HTML docs pages into dist-docs/
 ```
 Result: Exit 0 (Generated 34 static HTML pages with Arabic RTL default `index.html`, French/English landing pages, zero external CDN/script/font requests, inline offline search index validated against `duplicate_webhook`, `contributing-fixtures`, and `THREAT_MODEL`, all 348 internal links verified, and `.github/workflows/docs-pages.yml` configured for manual `workflow_dispatch` only).
 
+### STEP 7: Packaging Polish (`npm pack --dry-run` & Clean Temp-Dir Packed Tarball Install)
+
+Command:
+```bash
+npm pack -w packages/core -w packages/control -w packages/mock-chargily -w packages/mock-satim -w packages/mock-yalidine -w packages/mock-zrexpress -w packages/mock-maystro -w packages/client -w packages/cli --pack-destination <tmp>/packs && cd <tmp>/install && npm install --offline --no-audit --no-fund --omit=optional <tmp>/packs/*.tgz && npx --no-install dz-sandbox doctor && node smoke.mjs
+```
+Last ~15 lines of real output:
+```text
+Paste into your .env:
+
+# dz-sandbox local URLs
+DZ_CONTROL_URL=http://127.0.0.1:4000
+CHARGILY_BASE_URL=http://127.0.0.1:4001/api/v2
+CHARGILY_SECRET_KEY=test_sk_dz_sandbox_chargily_secret
+SATIM_BASE_URL=http://127.0.0.1:4002/payment/rest
+SATIM_USERNAME=test_merchant
+SATIM_PASSWORD=test_password
+YALIDINE_BASE_URL=http://127.0.0.1:4003/v1
+YALIDINE_API_ID=test_api_id
+YALIDINE_API_TOKEN=test_api_token
+=== @dz-sandbox/client + runtime ESM smoke ===
+{"packedSmoke":"OK","scenarioStatus":429,"chargilyUrl":"http://127.0.0.1:30597/api/v2","yalidinePort":30599,"scaffoldsLoaded":true}
+```
+Result: Exit 0 (All 9 tarballs contain `dist/`, `LICENSE`, `README.md`, `package.json` with zero `.ts` sources; offline clean install added 61 packages, `npx dz-sandbox doctor` succeeded, `startSandboxRuntime` + `createSandboxClient` enforced `rate_limited` -> `429`, and both scaffold packages imported cleanly).
+
 ---
 
 ## 2. Checks Marked `NOT RUN` Locally (and Why)

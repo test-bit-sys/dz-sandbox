@@ -4,6 +4,17 @@ All notable changes to **dz-sandbox** are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Security Hardening & Threat Model:** `docs/THREAT_MODEL.md`, SSRF/private-range webhook target protection, open-redirect neutralization, CRLF header-injection blocking, path-traversal guards on scenario/file loaders, log redaction (`Authorization`, API keys, tokens, card-like digits), optional Control API bearer authentication beyond loopback, and `fast-check` state-machine & scenario-precedence fuzz tests.
+- **Record & Replay Mode:** `dz-sandbox record`, `dz-sandbox replay`, and `dz-sandbox fixtures validate` backed by `@dz-sandbox/core` (`packages/core/src/recorder.ts`), automatic redaction, and explicit `--no-redact --confirm-unredacted` guardrails.
+- **Experimental OpenAPI Generator:** `dz-sandbox generate` and `dz-sandbox serve-openapi` for OpenAPI 3.x YAML/JSON specs (marked experimental; never used to forge verified Algerian provider behavior).
+- **ZR Express & Maystro Scaffolds:** Added `@dz-sandbox/mock-zrexpress` and `@dz-sandbox/mock-maystro` honest unverified scaffolds (`501 NOT_IMPLEMENTED_AWAITING_SPEC` until official docs or sanitized fixtures exist).
+- **Dashboard Quality & E2E:** Added Scenario Matrix tab, ARIA roles & keyboard tab navigation, WCAG 2.1 AA theme contrast refinements, and automated Chromium Playwright E2E test (`npm run test:e2e:browser`).
+- **Offline Docs Site & Guides:** Added `scripts/build-docs-site.mjs` (`npm run docs:build`, `npm run test:docs`) generating RTL-default Arabic + French/English static HTML with offline search, `docs/CONTRIBUTING-FIXTURES.md`, 9 reproducible bug guides under `docs/guides/bugs/`, and manual-only `.github/workflows/docs-pages.yml`.
+- **Packaging Polish:** Added per-package `README.md` across all 9 workspace packages and verified packed tarball installation (`npm pack` -> offline temp-dir `npm install` + `npx dz-sandbox doctor` + runtime smoke test).
+
 ## [0.1.0] - 2026-11-12
 
 ### Added

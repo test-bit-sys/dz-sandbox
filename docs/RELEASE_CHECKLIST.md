@@ -16,7 +16,10 @@ Follow these steps before tagging a release (`vX.Y.Z`):
 - [x] `npm run test:coverage` (`>=85%` on statements, branches, functions, and lines enforced in `vitest.config.ts` on `core`, `mock-chargily`, `mock-satim`, `mock-yalidine`)
 - [x] `npm run test:python`
 - [x] `npm run examples:smoke`
-- [x] `npm pack --dry-run` across all 7 workspace packages verifies zero `.ts` sources or test files leak into tarballs and every tarball includes `dist/` + `LICENSE`.
+- [x] `npm run test:e2e:browser` (Playwright Chromium E2E, contrast, ARIA, zero external requests; `@axe-core/playwright` auto-runs in online CI)
+- [x] `npm run docs:build && npm run test:docs`
+- [x] `node packages/cli/dist/cli.js fixtures validate fixtures`
+- [x] `npm pack` across all 9 workspace packages verifies zero `.ts` sources or test files leak into tarballs, every tarball includes `dist/`, `LICENSE`, and `README.md`, and clean temp-dir offline install + `npx dz-sandbox doctor` + `@dz-sandbox/client` smoke pass.
 
 ## 3. Manual Steps Required From Maintainer Before Publishing
 - [ ] **Resolve or accept `npm audit` advisory on `zod@3`:** `npm audit --omit=dev --audit-level=high` reports `GHSA-mrhx-c7xc-m3w5` (`zod <4.6.6`); decide whether to stay on `zod@^3.24.2` for v0.1.0 or plan a breaking `zod@4` upgrade for v0.2.0.
