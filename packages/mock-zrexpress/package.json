@@ -31,13 +31,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/[OWNER]/dz-sandbox.git",
+    "url": "https://github.com/test-bit-sys/dz-sandbox.git",
     "directory": "packages/mock-zrexpress"
   },
   "bugs": {
-    "url": "https://github.com/[OWNER]/dz-sandbox/issues"
+    "url": "https://github.com/test-bit-sys/dz-sandbox/issues"
   },
-  "homepage": "https://github.com/[OWNER]/dz-sandbox/tree/main/packages/mock-zrexpress#readme",
+  "homepage": "https://github.com/test-bit-sys/dz-sandbox/tree/main/packages/mock-zrexpress#readme",
   "keywords": [
     "algeria",
     "payment",

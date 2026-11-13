@@ -22,7 +22,7 @@ Follow these steps before tagging and publishing a release (`vX.Y.Z`):
 - [x] `npm pack` across all 9 workspace packages verifies zero `.ts` sources or test files leak into tarballs, every tarball includes `dist/`, `LICENSE`, and `README.md`, and clean temp-dir offline install + `npx dz-sandbox doctor` + `@dz-sandbox/client` smoke pass.
 
 ## 3. GitHub Repository Settings (Maintainer Manual Actions)
-- [ ] **Configure repository placeholders:** Replace `[OWNER]` and `[YOUR NAME]` across `package.json`, `.github/CODEOWNERS`, `LICENSE`, `SUPPORT.md`, and README files with your real GitHub username and name.
+- [ ] **Configure repository placeholders:** Replace `test-bit-sys` and `test-bit-sys` across `package.json`, `.github/CODEOWNERS`, `LICENSE`, `SUPPORT.md`, and README files with your real GitHub username and name.
 - [ ] **Set repository description & topics:**
   - Description: *Local deterministic sandbox simulating Algerian payment and delivery APIs (Chargily Pay v2, SATIM, Yalidine)*
   - Topics: `algeria`, `mock-server`, `sandbox`, `payments`, `webhooks`, `delivery`, `chargily`, `satim`, `yalidine`, `typescript`, `testing`, `rtl`

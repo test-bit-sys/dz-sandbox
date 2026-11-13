@@ -32,13 +32,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/[OWNER]/dz-sandbox.git",
+    "url": "https://github.com/test-bit-sys/dz-sandbox.git",
     "directory": "packages/mock-satim"
   },
   "bugs": {
-    "url": "https://github.com/[OWNER]/dz-sandbox/issues"
+    "url": "https://github.com/test-bit-sys/dz-sandbox/issues"
   },
-  "homepage": "https://github.com/[OWNER]/dz-sandbox/tree/main/packages/mock-satim#readme",
+  "homepage": "https://github.com/test-bit-sys/dz-sandbox/tree/main/packages/mock-satim#readme",
   "keywords": [
     "algeria",
     "payment",

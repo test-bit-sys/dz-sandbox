@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for reporting an issue! Please check [docs/SPEC_STATUS.md](https://github.com/[OWNER]/dz-sandbox/blob/main/docs/SPEC_STATUS.md) and [docs/guides/common-integration-bugs.md](https://github.com/[OWNER]/dz-sandbox/blob/main/docs/guides/common-integration-bugs.md) first.
+        Thank you for reporting an issue! Please check [docs/SPEC_STATUS.md](https://github.com/test-bit-sys/dz-sandbox/blob/main/docs/SPEC_STATUS.md) and [docs/guides/common-integration-bugs.md](https://github.com/test-bit-sys/dz-sandbox/blob/main/docs/guides/common-integration-bugs.md) first.
   - type: dropdown
     id: component
     attributes:

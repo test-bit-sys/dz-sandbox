@@ -13,9 +13,9 @@ keywords = ["algeria", "payment", "chargily", "satim", "yalidine", "mock", "sand
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/[OWNER]/dz-sandbox"
-Repository = "https://github.com/[OWNER]/dz-sandbox"
-Issues = "https://github.com/[OWNER]/dz-sandbox/issues"
+Homepage = "https://github.com/test-bit-sys/dz-sandbox"
+Repository = "https://github.com/test-bit-sys/dz-sandbox"
+Issues = "https://github.com/test-bit-sys/dz-sandbox/issues"
 
 [tool.setuptools.packages.find]
 include = ["dz_sandbox*"]

@@ -4,7 +4,7 @@
 
 A deterministic, 100% offline-first local sandbox that simulates Algerian payment and delivery APIs (**Chargily Pay v2**, **SATIM**, and **Yalidine**) so developers can integrate and test happy paths *and* real-world failure modes locally without merchant accounts, live credentials, or internet access.
 
-[![CI](https://github.com/[OWNER]/dz-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/[OWNER]/dz-sandbox/actions/workflows/ci.yml)
+[![CI](https://github.com/test-bit-sys/dz-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/test-bit-sys/dz-sandbox/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org)
 [![Status: Unofficial Simulator](https://img.shields.io/badge/status-unofficial_simulator-orange.svg)](#disclaimer)
@@ -193,7 +193,7 @@ Full guide index: [docs/guides/common-integration-bugs.md](./docs/guides/common-
 We welcome contributions! The most valuable way to contribute does not even require writing TypeScript:
 
 - **Contribute Sanitized Fixtures:** Record real sandbox HTTP exchanges using `dz-sandbox record`, sanitize them, run `dz-sandbox fixtures validate`, and submit a PR. See [docs/CAPTURE_GUIDE.md](./docs/CAPTURE_GUIDE.md) and [docs/CONTRIBUTING-FIXTURES.md](./docs/CONTRIBUTING-FIXTURES.md).
-- **Report Inconsistencies:** Found a difference between `dz-sandbox` and live sandbox behavior? Open a [Bug Report](https://github.com/[OWNER]/dz-sandbox/issues/new?template=bug_report.yml).
+- **Report Inconsistencies:** Found a difference between `dz-sandbox` and live sandbox behavior? Open a [Bug Report](https://github.com/test-bit-sys/dz-sandbox/issues/new?template=bug_report.yml).
 - **Code & Scenarios:** See [CONTRIBUTING.md](./CONTRIBUTING.md) and [docs/adding-a-provider.md](./docs/adding-a-provider.md).
 
 ---
@@ -207,4 +207,4 @@ We welcome contributions! The most valuable way to contribute does not even requ
 
 ## License
 
-MIT &copy; 2026 [YOUR NAME] and dz-sandbox contributors. See [LICENSE](./LICENSE).
+MIT &copy; 2026 test-bit-sys and dz-sandbox contributors. See [LICENSE](./LICENSE).

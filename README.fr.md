@@ -4,7 +4,7 @@
 
 Un simulateur local déterministe et 100% hors ligne reproduisant les APIs de paiement et de livraison algériennes (**Chargily Pay v2**, **SATIM**, et **Yalidine**) pour permettre aux développeurs d'intégrer et de tester les parcours nominaux *et* les scénarios d'échec réels, sans compte marchand, sans identifiants réels et sans connexion Internet.
 
-[![CI](https://github.com/[OWNER]/dz-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/[OWNER]/dz-sandbox/actions/workflows/ci.yml)
+[![CI](https://github.com/test-bit-sys/dz-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/test-bit-sys/dz-sandbox/actions/workflows/ci.yml)
 [![Licence : MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org)
 [![Statut : Simulateur Non Officiel](https://img.shields.io/badge/status-unofficial_simulator-orange.svg)](#avertissement)
@@ -190,7 +190,7 @@ Index complet : [docs/guides/common-integration-bugs.md](./docs/guides/common-in
 
 Les contributions sont les bienvenues ! La façon la plus utile d'aider ne requiert aucun code :
 - **Contribuer des fixtures nettoyées :** Enregistrez des requêtes/réponses réelles avec `dz-sandbox record`, masquez les données sensibles, validez avec `dz-sandbox fixtures validate` et ouvrez un PR. Voir [docs/CAPTURE_GUIDE.md](./docs/CAPTURE_GUIDE.md) et [docs/CONTRIBUTING-FIXTURES.md](./docs/CONTRIBUTING-FIXTURES.md).
-- **Signaler un écart :** Vous constatez une différence avec le bac à sable réel ? Ouvrez un [Rapport de bug](https://github.com/[OWNER]/dz-sandbox/issues/new?template=bug_report.yml).
+- **Signaler un écart :** Vous constatez une différence avec le bac à sable réel ? Ouvrez un [Rapport de bug](https://github.com/test-bit-sys/dz-sandbox/issues/new?template=bug_report.yml).
 - **Code & Scénarios :** Consultez [CONTRIBUTING.md](./CONTRIBUTING.md) et [docs/adding-a-provider.md](./docs/adding-a-provider.md).
 
 ---
@@ -204,4 +204,4 @@ Les contributions sont les bienvenues ! La façon la plus utile d'aider ne requi
 
 ## Licence
 
-MIT &copy; 2026 [YOUR NAME] et contributeurs dz-sandbox. Voir [LICENSE](./LICENSE).
+MIT &copy; 2026 test-bit-sys et contributeurs dz-sandbox. Voir [LICENSE](./LICENSE).

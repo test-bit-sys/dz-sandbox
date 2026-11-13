@@ -8,7 +8,7 @@
 
 </div>
 
-[![CI](https://github.com/[OWNER]/dz-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/[OWNER]/dz-sandbox/actions/workflows/ci.yml)
+[![CI](https://github.com/test-bit-sys/dz-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/test-bit-sys/dz-sandbox/actions/workflows/ci.yml)
 [![الترخيص: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org)
 [![الحالة: محاكي غير رسمي](https://img.shields.io/badge/status-unofficial_simulator-orange.svg)](#إخلاء-مسؤولية)
@@ -237,7 +237,7 @@ npx dz-sandbox generate --openapi ./spec.yaml --name custom-courier # توليد
 
 نرحب بمساهمات الجميع! وأفضل طريقة للمساهمة لا تتطلب بالضرورة كتابة كود:
 - **المساهمة بعينات مسجلة ومنقحة:** سجل تبادلات HTTP حقيقية في بيئات الاختبار باستخدام `dz-sandbox record`، احذف البيانات الحساسة، تأكد عبر `dz-sandbox fixtures validate` وافتح Pull Request. راجع [docs/CAPTURE_GUIDE.md](./docs/CAPTURE_GUIDE.md) و[docs/CONTRIBUTING-FIXTURES.md](./docs/CONTRIBUTING-FIXTURES.md).
-- **الإبلاغ عن أي اختلاف في السلوك:** إذا لاحظت اختلافاً بين المحاكي وبيئة الاختبار الحقيقية، افتح [تقرير خطأ](https://github.com/[OWNER]/dz-sandbox/issues/new?template=bug_report.yml).
+- **الإبلاغ عن أي اختلاف في السلوك:** إذا لاحظت اختلافاً بين المحاكي وبيئة الاختبار الحقيقية، افتح [تقرير خطأ](https://github.com/test-bit-sys/dz-sandbox/issues/new?template=bug_report.yml).
 - **التطوير وإضافة السيناريوهات:** راجع [CONTRIBUTING.md](./CONTRIBUTING.md) و[docs/adding-a-provider.md](./docs/adding-a-provider.md).
 
 ---
@@ -251,6 +251,6 @@ npx dz-sandbox generate --openapi ./spec.yaml --name custom-courier # توليد
 
 ## الترخيص
 
-مرخص تحت رخصة MIT &copy; 2026 [YOUR NAME] ومساهمي dz-sandbox. راجع [LICENSE](./LICENSE).
+مرخص تحت رخصة MIT &copy; 2026 test-bit-sys ومساهمي dz-sandbox. راجع [LICENSE](./LICENSE).
 
 </div>

@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for helping close the fidelity gap! Please follow [docs/CAPTURE_GUIDE.md](https://github.com/[OWNER]/dz-sandbox/blob/main/docs/CAPTURE_GUIDE.md) and [docs/CONTRIBUTING-FIXTURES.md](https://github.com/[OWNER]/dz-sandbox/blob/main/docs/CONTRIBUTING-FIXTURES.md).
+        Thank you for helping close the fidelity gap! Please follow [docs/CAPTURE_GUIDE.md](https://github.com/test-bit-sys/dz-sandbox/blob/main/docs/CAPTURE_GUIDE.md) and [docs/CONTRIBUTING-FIXTURES.md](https://github.com/test-bit-sys/dz-sandbox/blob/main/docs/CONTRIBUTING-FIXTURES.md).
   - type: dropdown
     id: provider
     attributes:

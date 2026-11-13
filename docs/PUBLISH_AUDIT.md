@@ -44,8 +44,8 @@ Search for the following placeholders in your editor and replace them with your 
 
 | Placeholder | Meaning | Files Affected |
 | --- | --- | --- |
-| `[OWNER]` | Your GitHub username or organization name | Root `package.json`, 9 `packages/*/package.json`, `.github/CODEOWNERS`, `.github/ISSUE_TEMPLATE/*.yml`, `.github/ISSUE_TEMPLATE/config.yml`, `SUPPORT.md`, `README.md`, `README.fr.md`, `README.ar.md`, `packages/python-client/pyproject.toml` |
-| `[YOUR NAME]` | Your name or organization for the MIT copyright notice | Root `LICENSE`, 10 package `LICENSE` files, `README.md`, `README.fr.md`, `README.ar.md` |
+| `test-bit-sys` | Your GitHub username or organization name | Root `package.json`, 9 `packages/*/package.json`, `.github/CODEOWNERS`, `.github/ISSUE_TEMPLATE/*.yml`, `.github/ISSUE_TEMPLATE/config.yml`, `SUPPORT.md`, `README.md`, `README.fr.md`, `README.ar.md`, `packages/python-client/pyproject.toml` |
+| `test-bit-sys` | Your name or organization for the MIT copyright notice | Root `LICENSE`, 10 package `LICENSE` files, `README.md`, `README.fr.md`, `README.ar.md` |
 | `docs/assets/demo.gif` | Visual demonstration walkthrough | Follow [docs/DEMO_SCRIPT.md](./DEMO_SCRIPT.md) to record the GIF and uncomment the demo image tag in `README.md`, `README.fr.md`, `README.ar.md` |
 | `docs/assets/dashboard.png` | Dashboard screenshot | Capture the dashboard running on `http://127.0.0.1:4000` and uncomment the screenshot tag in the README files |
 
