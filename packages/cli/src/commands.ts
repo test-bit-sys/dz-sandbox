@@ -68,6 +68,7 @@ Usage:
   dz-sandbox fixtures validate [dir]
   dz-sandbox generate --openapi <file> --name <provider> [--out ./generated-providers/<name>]
   dz-sandbox serve-openapi --openapi <file> --name <provider> [--port 4200]
+  dz-sandbox listen --forward-to <url> [--provider chargily|satim|yalidine]
   dz-sandbox doctor`);
 }
 
@@ -357,6 +358,110 @@ export async function runCli(argv: string[]): Promise<number> {
     };
     process.on('SIGINT', () => void shutdown());
     process.on('SIGTERM', () => void shutdown());
+    return 0;
+  }
+
+  if (cmd === 'listen') {
+    const forwardTo = getFlag(argv, '--forward-to');
+    if (!forwardTo) {
+      console.error('Usage: dz-sandbox listen --forward-to <url> [--provider <name>] [--interval <ms>] [--once]');
+      return 1;
+    }
+    const providerFilter = getFlag(argv, '--provider')?.toLowerCase();
+    const pollInterval = Math.max(250, Number.parseInt(getFlag(argv, '--interval') ?? '1000', 10));
+    const runOnce = hasFlag(argv, '--once');
+
+    try {
+      await callControl('/health');
+    } catch {
+      console.error(`Cannot connect to dz-sandbox at ${getControlUrl()}. Is dz-sandbox running? (run 'dz-sandbox start')`);
+      return 1;
+    }
+
+    console.log(`> Ready! Forwarding webhooks from ${getControlUrl()} -> ${forwardTo}`);
+    if (providerFilter) {
+      console.log(`> Filter: provider=${providerFilter}`);
+    }
+    console.log(`> Press Ctrl+C to stop listening.`);
+
+    const seenIds = new Set<string>();
+    if (!runOnce) {
+      try {
+        const initial = (await callControl('/__control/webhooks?limit=100')) as {
+          webhooks?: Array<{ id: string }>;
+        };
+        for (const w of initial.webhooks ?? []) {
+          seenIds.add(w.id);
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    let running = true;
+    const shutdown = () => {
+      running = false;
+      console.log('\n> Stopped listening.');
+    };
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+
+    while (running) {
+      try {
+        const query = providerFilter
+          ? `?provider=${encodeURIComponent(providerFilter)}&limit=50`
+          : '?limit=50';
+        const res = (await callControl(`/__control/webhooks${query}`)) as {
+          webhooks?: Array<{
+            id: string;
+            provider: string;
+            payload: unknown;
+            headers: Record<string, string>;
+            timestamp: string;
+          }>;
+        };
+
+        const incoming = (res.webhooks ?? []).filter((w) => !seenIds.has(w.id));
+        for (const webhook of incoming.reverse()) {
+          seenIds.add(webhook.id);
+          const eventType =
+            typeof (webhook.payload as Record<string, unknown>)?.type === 'string'
+              ? (webhook.payload as Record<string, unknown>).type
+              : 'webhook.event';
+
+          const startTime = Date.now();
+          let statusText = 'OK';
+
+          try {
+            const fwdRes = await fetch(forwardTo, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...webhook.headers,
+                'X-DZ-Forwarded-From': webhook.provider,
+                'X-DZ-Webhook-Id': webhook.id,
+              },
+              body: JSON.stringify(webhook.payload),
+            });
+            statusText = fwdRes.ok ? `HTTP ${fwdRes.status}` : `HTTP ${fwdRes.status} ERROR`;
+          } catch (err) {
+            statusText = `FAILED (${(err as Error).message})`;
+          }
+
+          const durationMs = Date.now() - startTime;
+          const timeStr = new Date().toLocaleTimeString();
+          console.log(
+            `[${timeStr}] [${webhook.provider}] ${eventType} -> ${forwardTo} [${statusText}] (${durationMs}ms)`,
+          );
+        }
+      } catch {
+        // polling error, wait for next tick
+      }
+
+      if (runOnce) break;
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+
     return 0;
   }
 

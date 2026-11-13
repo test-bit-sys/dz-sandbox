@@ -213,7 +213,19 @@ npx dz-sandbox record --provider yalidine --upstream https://api.yalidine.app/v1
 npx dz-sandbox replay --provider yalidine --fixtures ./fixtures/yalidine/captured
 npx dz-sandbox fixtures validate ./fixtures   # التأكد من خلو العينات من البيانات الحساسة
 npx dz-sandbox generate --openapi ./spec.yaml --name custom-courier # توليد تجريبي لمزود جديد من OpenAPI
+npx dz-sandbox listen --forward-to http://localhost:8000/api/webhooks/chargily # تمرير الـ Webhooks محلياً لخادم التطوير (على طريقة Stripe CLI)
 ```
+
+<div dir="rtl">
+
+### أمثلة التكامل والمشاريع الجاهزة (Examples & Frameworks)
+
+- **[Express Checkout](./examples/express-checkout)**: تطبيق Node.js / Express متكامل يوضح الفرق بين المعالجة الساذجة والمعالجة الآمنة (Idempotent) للـ Webhook.
+- **[Next.js COD Store](./examples/nextjs-cod-store)**: متجر إلكتروني بنظام الدفع عند الاستلام مع حساب رسوم ياليدين لـ 69 ولاية.
+- **[Laravel 11+ Checkout](./examples/laravel-checkout)**: تكامل شامل لمطوري Laravel (التحقق من توقيع HMAC، والدفع بـ SATIM CIB، وتوليد طرود Yalidine).
+- **[اختبارات Vitest الآلية](./examples/test-with-vitest)**: اختبارات تكامل آلية ضد خوادم المحاكاة المحلية.
+
+</div>
 
 ---
 

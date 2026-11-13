@@ -1,3 +1,4 @@
+import { createServer } from 'node:http';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -74,6 +75,48 @@ describe('dz-sandbox CLI & runtime', () => {
     expect(await runCli(['replay'])).toBe(1);
     expect(await runCli(['generate'])).toBe(1);
     expect(await runCli(['serve-openapi'])).toBe(1);
+    expect(await runCli(['listen'])).toBe(1);
+
+    // Test listen command against local HTTP receiver
+    const receivedHooks: unknown[] = [];
+    const dummyReceiver = createServer((req, res) => {
+      let body = '';
+      req.on('data', (chunk) => {
+        body += chunk;
+      });
+      req.on('end', () => {
+        receivedHooks.push({ headers: req.headers, body: JSON.parse(body || '{}') });
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true }));
+      });
+    });
+    await new Promise<void>((resolve) => dummyReceiver.listen(0, '127.0.0.1', () => resolve()));
+    const dummyPort = (dummyReceiver.address() as { port: number }).port;
+
+    // Trigger a checkout and mock payment on Chargily to create a webhook
+    await fetch(`http://127.0.0.1:${runtime.ports.chargily}/api/v2/checkouts`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer test_sk_live_12345',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        amount: 2500,
+        currency: 'dzd',
+        success_url: 'http://example.com/ok',
+      }),
+    });
+
+    const listenResult = await runCli([
+      'listen',
+      '--forward-to',
+      `http://127.0.0.1:${dummyPort}/webhook`,
+      '--provider',
+      'chargily',
+      '--once',
+    ]);
+    expect(listenResult).toBe(0);
+    dummyReceiver.close();
 
     const demoOpenApi = path.resolve(
       import.meta.dirname,

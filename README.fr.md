@@ -170,7 +170,15 @@ npx dz-sandbox record --provider yalidine --upstream https://api.yalidine.app/v1
 npx dz-sandbox replay --provider yalidine --fixtures ./fixtures/yalidine/captured
 npx dz-sandbox fixtures validate ./fixtures   # Valider l'absence de secrets ou PII dans les fixtures
 npx dz-sandbox generate --openapi ./spec.yaml --name custom-courier # Générateur expérimental OpenAPI
+npx dz-sandbox listen --forward-to http://localhost:8000/api/webhooks/chargily # Relayer les webhooks localement (style Stripe CLI)
 ```
+
+### Exemples et Intégrations Frameworks
+
+- **[Express Checkout](./examples/express-checkout)** : Flux Node.js / Express complet comparant traitement naïf et traitement idempotent de webhook.
+- **[Next.js COD Store](./examples/nextjs-cod-store)** : Panier e-commerce Next.js avec calcul de livraison Yalidine COD sur 69 wilayas.
+- **[Laravel 11+ Checkout](./examples/laravel-checkout)** : Intégration Laravel complète avec vérification de signature HMAC, SATIM CIB et bordereaux Yalidine.
+- **[Tests automatisés Vitest](./examples/test-with-vitest)** : Suite de tests hermétique contre les serveurs locaux.
 
 ---
 

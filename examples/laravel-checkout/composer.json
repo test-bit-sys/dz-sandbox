@@ -1,0 +1,10 @@
+{
+  "name": "dz-sandbox/laravel-checkout-example",
+  "description": "Algerian e-commerce checkout example for Laravel 11+ with dz-sandbox",
+  "type": "project",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "guzzlehttp/guzzle": "^7.8"
+  }
+}
