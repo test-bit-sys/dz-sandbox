@@ -9,10 +9,12 @@
 A deterministic, 100% offline-first local sandbox that simulates Algerian payment and delivery APIs (**Chargily Pay v2**, **SATIM**, and **Yalidine**) so developers can integrate and test happy paths *and* real-world failure modes locally without merchant accounts, live credentials, or internet access.
 
 [![CI](https://github.com/test-bit-sys/dz-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/test-bit-sys/dz-sandbox/actions/workflows/ci.yml)
+[![Documentation](https://img.shields.io/badge/docs-live%20site-brightgreen.svg)](https://test-bit-sys.github.io/dz-sandbox/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org)
 [![Status: Unofficial Simulator](https://img.shields.io/badge/status-unofficial_simulator-orange.svg)](#disclaimer)
 
+**Live Documentation:** [https://test-bit-sys.github.io/dz-sandbox/](https://test-bit-sys.github.io/dz-sandbox/)  
 **Languages:** English | [العربية (Arabic)](./README.ar.md) | [Français (French)](./README.fr.md)
 
 <!-- TODO: Record and add docs/assets/demo.gif (see docs/DEMO_SCRIPT.md) -->

@@ -13,11 +13,17 @@
 </div>
 
 [![CI](https://github.com/test-bit-sys/dz-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/test-bit-sys/dz-sandbox/actions/workflows/ci.yml)
+[![التوثيق الحي](https://img.shields.io/badge/%D8%A7%D9%84%D8%AA%D9%88%D8%AB%D9%8A%D9%82-%D9%85%D9%88%D9%82%D8%B9%20%D8%B1%D8%B3%D9%85%D9%8A%20%D8%AD%D9%8A-brightgreen.svg)](https://test-bit-sys.github.io/dz-sandbox/)
 [![الترخيص: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org)
 [![الحالة: محاكي غير رسمي](https://img.shields.io/badge/status-unofficial_simulator-orange.svg)](#إخلاء-مسؤولية)
 
+<div dir="rtl">
+
+🌐 **موقع التوثيق الرسمي الحي (38 صفحة مع بحث عربي فوري):** [https://test-bit-sys.github.io/dz-sandbox/](https://test-bit-sys.github.io/dz-sandbox/)  
 **اللغات:** [English](./README.md) | **العربية** | [Français](./README.fr.md)
+
+</div>
 
 <!-- TODO: تسجيل وإضافة docs/assets/demo.gif (راجع docs/DEMO_SCRIPT.md) -->
 

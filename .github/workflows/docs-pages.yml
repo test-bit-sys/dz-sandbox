@@ -1,9 +1,13 @@
-# Documentation GitHub Pages workflow
-# Intentionally limited to manual `workflow_dispatch` triggers until the repository
-# maintainer reviews the site and enables automated Pages deployments.
-name: Docs Pages (Manual Dispatch Only)
+name: Docs Pages
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'scripts/build-docs-site.mjs'
+      - '.github/workflows/docs-pages.yml'
   workflow_dispatch:
 
 permissions:
