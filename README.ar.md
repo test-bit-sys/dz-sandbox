@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./docs/assets/banner.png" alt="dz-sandbox banner" width="800"/>
+</p>
+
 # dz-sandbox
 
 <div dir="rtl">
