@@ -23,11 +23,13 @@ const QUERY_SECRET_PARAM_RE =
 
 export function maskSecretValue(value: string): string {
   if (!value) return '[REDACTED]';
-  const bearerMatch = /^((?:Bearer|Basic)\s+)(.+)$/i.exec(value);
-  if (bearerMatch) {
-    const prefix = bearerMatch[1] ?? 'Bearer ';
-    const secret = bearerMatch[2] ?? '';
-    return `${prefix}${maskRawToken(secret)}`;
+  const trimmed = value.trim();
+  const lower = trimmed.toLowerCase();
+  if (lower.startsWith('bearer ')) {
+    return `Bearer ${maskRawToken(trimmed.slice(7).trim())}`;
+  }
+  if (lower.startsWith('basic ')) {
+    return `Basic ${maskRawToken(trimmed.slice(6).trim())}`;
   }
   return maskRawToken(value);
 }

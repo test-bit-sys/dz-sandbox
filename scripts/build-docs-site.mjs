@@ -42,9 +42,14 @@ function escapeHtml(str) {
 }
 
 function slugify(text) {
-  return text
+  let cleaned = String(text);
+  while (cleaned.includes("<") && cleaned.includes(">")) {
+    const next = cleaned.replace(/<[^>]*>/g, "");
+    if (next === cleaned) break;
+    cleaned = next;
+  }
+  return cleaned
     .toLowerCase()
-    .replace(/<[^>]+>/g, "")
     .replace(/[^\p{L}\p{N}\s-]/gu, "")
     .trim()
     .replace(/\s+/g, "-");

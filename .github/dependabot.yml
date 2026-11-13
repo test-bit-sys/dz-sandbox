@@ -4,10 +4,30 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 10
+    groups:
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+      lint-and-types:
+        patterns:
+          - "@types/*"
+          - "eslint*"
+          - "@typescript-eslint/*"
+    ignore:
+      - dependency-name: "vitest"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitest/*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns:
+          - "actions/*"
+          - "github/*"

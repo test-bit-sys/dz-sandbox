@@ -438,11 +438,12 @@ export interface GeneratedOpenApiResult {
 }
 
 export function generateOpenApiProviderFiles(opts: GenerateOpenApiFilesOptions): GeneratedOpenApiResult {
-  const safeName = opts.provider
+  let safeName = opts.provider
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9-_]/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replace(/[^a-z0-9-_]/g, '-');
+  while (safeName.startsWith('-')) safeName = safeName.slice(1);
+  while (safeName.endsWith('-')) safeName = safeName.slice(0, -1);
   if (!safeName || !/[a-z0-9]/.test(safeName)) {
     throw new Error('Invalid provider name for OpenAPI generator.');
   }

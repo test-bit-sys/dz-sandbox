@@ -163,8 +163,12 @@ function paginate<T>(items: T[], perPageRaw: string | undefined, pageRaw: string
 function extractBearerToken(request: FastifyRequest): string | undefined {
   const auth = request.headers.authorization;
   if (!auth) return undefined;
-  const match = /^Bearer\s+(.+)$/i.exec(auth.trim());
-  return match?.[1]?.trim();
+  const trimmed = auth.trim();
+  if (trimmed.toLowerCase().startsWith('bearer ')) {
+    const token = trimmed.slice(7).trim();
+    return token.length > 0 ? token : undefined;
+  }
+  return undefined;
 }
 
 function publicCheckoutView(checkout: ChargilyCheckout): Omit<ChargilyCheckout, '_items' | '_secret_key'> {

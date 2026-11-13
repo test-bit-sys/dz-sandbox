@@ -79,7 +79,7 @@ describe('record and replay engine', () => {
       reqHeaders: { authorization: 'Bearer test_sk_secret123', 'content-type': 'application/json' },
       reqBody: { name: 'Karim', phone: '0551234567' },
       status: 200,
-      resHeaders: { 'content-type': 'application/json', 'set-cookie': 'secret=1' },
+      resHeaders: { 'content-type': 'application/json', 'set-cookie': 'secret=1; Secure; HttpOnly' },
       resBody: { orderId: 'ord_1', status: 'ok' },
     });
 
@@ -195,7 +195,7 @@ describe('record and replay engine', () => {
       hitCount++;
       const body = req.body as Record<string, unknown>;
       return reply
-        .header('set-cookie', 'upstream_secret=1')
+        .header('set-cookie', 'upstream_secret=1; Secure; HttpOnly')
         .header('retry-after', '10')
         .code(201)
         .send({

@@ -106,9 +106,8 @@ export function createControlServer(deps: ControlServerDeps): FastifyInstance {
       return;
     }
     if (configuredToken) {
-      const authHeader = request.headers.authorization;
-      const match = authHeader ? /^Bearer\s+(.+)$/i.exec(authHeader.trim()) : null;
-      const candidate = match?.[1]?.trim() ?? '';
+      const authHeader = typeof request.headers.authorization === 'string' ? request.headers.authorization.trim() : '';
+      const candidate = authHeader.toLowerCase().startsWith('bearer ') ? authHeader.slice(7).trim() : '';
       if (!candidate || !timingSafeEqualToken(configuredToken, candidate)) {
         return reply.code(401).send({
           error: 'UNAUTHORIZED',

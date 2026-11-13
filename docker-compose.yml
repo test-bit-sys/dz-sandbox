@@ -12,6 +12,8 @@ services:
       - "${DZ_HOST_BIND:-127.0.0.1}:${DZ_YALIDINE_PORT:-4003}:4003"
     environment:
       DZ_SANDBOX_HOST: "0.0.0.0"
+      DZ_ALLOW_UNAUTH_CONTROL: "${DZ_ALLOW_UNAUTH_CONTROL:-true}"
+      DZ_CONTROL_TOKEN: "${DZ_CONTROL_TOKEN:-}"
       DZ_STORE: "${DZ_STORE:-memory}"
       DZ_SQLITE_PATH: "/app/data/dz-sandbox.db"
       DZ_SEED: "${DZ_SEED:-1337}"

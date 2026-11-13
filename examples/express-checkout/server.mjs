@@ -30,6 +30,15 @@ export function createExampleApp(opts = {}) {
     }),
   );
 
+  function escapeHtml(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function verifyChargilyWebhook(req, res) {
     const sig = req.get('signature') ?? '';
     const raw = req.rawBody ?? JSON.stringify(req.body);
@@ -213,8 +222,12 @@ export function createExampleApp(opts = {}) {
     res.json({ totalFulfillments: fulfillments, orders: Array.from(orders.values()) });
   });
 
-  app.get('/success', (req, res) => res.send(`Payment succeeded for ${req.query.order ?? ''}`));
-  app.get('/failure', (req, res) => res.send(`Payment failed for ${req.query.order ?? ''}`));
+  app.get('/success', (req, res) =>
+    res.type('html').send(`<!DOCTYPE html><html><body><p>Payment succeeded for ${escapeHtml(req.query.order)}</p></body></html>`),
+  );
+  app.get('/failure', (req, res) =>
+    res.type('html').send(`<!DOCTYPE html><html><body><p>Payment failed for ${escapeHtml(req.query.order)}</p></body></html>`),
+  );
 
   return { app, orders };
 }
