@@ -1,7 +1,0 @@
-{
-  "name": "example-laravel-checkout",
-  "version": "0.1.0",
-  "private": true,
-  "description": "Laravel 11+ reference integration for dz-sandbox (Chargily Pay v2, SATIM, Yalidine)",
-  "type": "module"
-}
