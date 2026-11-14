@@ -259,32 +259,38 @@ function renderLayout({ title, lang, dir, relHtmlPath, bodyHtml }) {
   const labels =
     lang === "ar"
       ? {
-          searchPlaceholder: "ابحث في التوثيق والسيناريوهات والأخطاء...",
+          searchPlaceholder: "ابحث في التوثيق والسيناريوهات والأخطاء... (اضغط / للبحث)",
           noResults: "لا توجد نتائج مطابقة.",
           spec: "حالة المواصفات",
           bugs: "أخطاء التكامل (9)",
           fixtures: "المساهمة بالبيانات",
-          scenarios: "السيناريوهات",
+          scenarios: "السيناريوهات (33)",
           threat: "نموذج التهديدات",
+          copy: "نسخ",
+          copied: "تم النسخ!",
         }
       : lang === "fr"
         ? {
-            searchPlaceholder: "Rechercher dans la documentation (hors ligne)...",
+            searchPlaceholder: "Rechercher dans la documentation... (Appuyez sur /)",
             noResults: "Aucun résultat trouvé.",
             spec: "Statut API",
             bugs: "9 Erreurs Courantes",
             fixtures: "Contribuer Fixtures",
-            scenarios: "Scénarios",
+            scenarios: "Scénarios (33)",
             threat: "Menaces",
+            copy: "Copier",
+            copied: "Copié !",
           }
         : {
-            searchPlaceholder: "Search docs, scenarios, bug guides (offline)...",
+            searchPlaceholder: "Search docs, scenarios, bug guides... (Press / to search)",
             noResults: "No matching documentation found.",
             spec: "Spec Status",
             bugs: "9 Bug Guides",
             fixtures: "Contributing Fixtures",
-            scenarios: "Scenarios",
+            scenarios: "Scenarios (33)",
             threat: "Threat Model",
+            copy: "Copy",
+            copied: "Copied!",
           };
 
   return `<!doctype html>
@@ -293,6 +299,14 @@ function renderLayout({ title, lang, dir, relHtmlPath, bodyHtml }) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>${escapeHtml(title)} — dz-sandbox</title>
+<meta property="og:title" content="${escapeHtml(title)} — dz-sandbox" />
+<meta property="og:description" content="Local deterministic sandbox simulating Algerian payment and delivery APIs (Chargily Pay v2, SATIM, Yalidine, BaridiMob). Test what fails offline." />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://test-bit-sys.github.io/dz-sandbox/assets/banner.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="${escapeHtml(title)} — dz-sandbox" />
+<meta name="twitter:description" content="Local deterministic sandbox simulating Algerian payment, courier, and banking APIs. Test what fails offline." />
+<meta name="twitter:image" content="https://test-bit-sys.github.io/dz-sandbox/assets/banner.png" />
 <style>
   :root {
     --bg: #0f172a;
@@ -341,6 +355,11 @@ function renderLayout({ title, lang, dir, relHtmlPath, bodyHtml }) {
     font-size: 0.92rem;
   }
   nav a:hover { color: var(--text); text-decoration: underline; }
+  .langs {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
   .langs a {
     color: var(--text);
     background: #0f172a;
@@ -349,7 +368,15 @@ function renderLayout({ title, lang, dir, relHtmlPath, bodyHtml }) {
     padding: 0.2rem 0.55rem;
     font-size: 0.82rem;
     text-decoration: none;
-    margin-inline-start: 0.35rem;
+  }
+  .gh-link {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+    border-color: #38bdf8 !important;
+    font-weight: 600;
+  }
+  .gh-link:hover {
+    background: #0369a1 !important;
   }
   .search-wrap {
     max-width: 1100px;
@@ -359,12 +386,28 @@ function renderLayout({ title, lang, dir, relHtmlPath, bodyHtml }) {
   }
   #docs-search {
     width: 100%;
-    padding: 0.65rem 0.9rem;
+    padding: 0.65rem 2.8rem 0.65rem 0.9rem;
     border-radius: 8px;
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);
     font-size: 0.95rem;
+  }
+  [dir="rtl"] #docs-search {
+    padding: 0.65rem 0.9rem 0.65rem 2.8rem;
+  }
+  .search-kbd {
+    position: absolute;
+    inset-inline-end: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #0f172a;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+    pointer-events: none;
   }
   #search-results {
     margin-top: 0.5rem;
@@ -402,6 +445,42 @@ function renderLayout({ title, lang, dir, relHtmlPath, bodyHtml }) {
     padding: 0.12rem 0.35rem;
     border-radius: 4px;
     font-size: 0.9em;
+  }
+  .code-container {
+    position: relative;
+    margin: 1rem 0;
+  }
+  .code-container pre {
+    margin: 0;
+  }
+  .copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: #1e293b;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 5px;
+    padding: 0.25rem 0.55rem;
+    font-size: 0.75rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    z-index: 5;
+  }
+  .copy-btn:hover {
+    background: #334155;
+    color: var(--text);
+    border-color: var(--accent);
+  }
+  .copy-btn.copied {
+    background: #064e3b;
+    border-color: #10b981;
+    color: #34d49a;
+  }
+  [dir="rtl"] .copy-btn {
+    right: auto;
+    left: 0.5rem;
   }
   pre {
     background: var(--code-bg);
@@ -448,11 +527,13 @@ function renderLayout({ title, lang, dir, relHtmlPath, bodyHtml }) {
       <a href="${prefix}index.ar.html" hreflang="ar">العربية</a>
       <a href="${prefix}index.fr.html" hreflang="fr">Français</a>
       <a href="${prefix}index.en.html" hreflang="en">English</a>
+      <a href="https://github.com/test-bit-sys/dz-sandbox" target="_blank" rel="noopener noreferrer" class="gh-link">GitHub ⭐</a>
     </div>
   </div>
 </header>
 <div class="search-wrap">
   <input id="docs-search" type="search" placeholder="${escapeHtml(labels.searchPlaceholder)}" aria-label="${escapeHtml(labels.searchPlaceholder)}" />
+  <kbd class="search-kbd">/</kbd>
   <div id="search-results" role="region" aria-live="polite"></div>
 </div>
 <main>
@@ -461,7 +542,7 @@ function renderLayout({ title, lang, dir, relHtmlPath, bodyHtml }) {
   </article>
 </main>
 <footer>
-  dz-sandbox offline static documentation — Test what fails, not just what succeeds. Unofficial sandbox; not affiliated with Chargily, SATIM, or Yalidine.
+  dz-sandbox offline static documentation — Test what fails, not just what succeeds. Unofficial sandbox; not affiliated with Chargily, SATIM, Yalidine, or BaridiMob (Algérie Poste).
 </footer>
 <script src="${prefix}search-index.js"></script>
 <script>
@@ -470,14 +551,72 @@ function renderLayout({ title, lang, dir, relHtmlPath, bodyHtml }) {
   var box = document.getElementById("search-results");
   var prefix = ${JSON.stringify(prefix)};
   var noResultsText = ${JSON.stringify(labels.noResults)};
-  if (!input || !box) return;
-  input.addEventListener("input", function () {
-    var q = (input.value || "").trim().toLowerCase();
-    if (!q) { box.style.display = "none"; box.innerHTML = ""; return; }
-    var items = Array.isArray(window.__DZ_SEARCH_INDEX__) ? window.__DZ_SEARCH_INDEX__ : [];
-    var hits = items.filter(function (entry) {
-      return (entry.title + " " + entry.path + " " + entry.body).toLowerCase().indexOf(q) !== -1;
-    }).slice(0, 12);
+  var copyLabel = ${JSON.stringify(labels.copy)};
+  var copiedLabel = ${JSON.stringify(labels.copied)};
+
+  if (input && box) {
+    input.addEventListener("input", function () {
+      var q = (input.value || "").trim().toLowerCase();
+      if (!q) { box.style.display = "none"; box.innerHTML = ""; return; }
+      var items = Array.isArray(window.__DZ_SEARCH_INDEX__) ? window.__DZ_SEARCH_INDEX__ : [];
+      var hits = items.filter(function (entry) {
+        return (entry.title + " " + entry.path + " " + entry.body).toLowerCase().indexOf(q) !== -1;
+      }).slice(0, 12);
+      box.style.display = "block";
+      if (!hits.length) {
+        box.innerHTML = "<div style='padding:0.4rem 0.6rem'>" + noResultsText + "</div>";
+        return;
+      }
+      box.innerHTML = hits.map(function (hit) {
+        return "<a href='" + prefix + hit.path + "'><strong>" +
+          hit.title.replace(/</g, "&lt;") + "</strong><small>" +
+          hit.path + " — " + hit.excerpt.replace(/</g, "&lt;") + "</small></a>";
+      }).join("");
+    });
+
+    window.addEventListener("keydown", function (e) {
+      if (e.key === "/" && document.activeElement !== input) {
+        e.preventDefault();
+        input.focus();
+        input.select();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        input.focus();
+        input.select();
+      }
+    });
+  }
+
+  // One-click copy button for code blocks
+  document.querySelectorAll("pre").forEach(function (pre) {
+    var wrapper = document.createElement("div");
+    wrapper.className = "code-container";
+    pre.parentNode.insertBefore(wrapper, pre);
+    wrapper.appendChild(pre);
+
+    var btn = document.createElement("button");
+    btn.className = "copy-btn";
+    btn.type = "button";
+    btn.textContent = copyLabel;
+    btn.setAttribute("aria-label", copyLabel);
+    btn.addEventListener("click", function () {
+      var code = pre.querySelector("code") || pre;
+      var text = code.innerText || code.textContent || "";
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          btn.textContent = copiedLabel;
+          btn.classList.add("copied");
+          setTimeout(function () {
+            btn.textContent = copyLabel;
+            btn.classList.remove("copied");
+          }, 1800);
+        });
+      }
+    });
+    wrapper.appendChild(btn);
+  });
+})();
+</script>
     box.style.display = "block";
     if (!hits.length) {
       box.innerHTML = "<div style='padding:0.4rem 0.6rem'>" + noResultsText + "</div>";
@@ -530,6 +669,12 @@ function buildSite() {
       excerpt: parsed.plainText.slice(0, 140),
       body: parsed.plainText.slice(0, 6000),
     });
+  }
+
+  // Copy docs/assets if present
+  const assetsDir = path.join(DOCS_DIR, "assets");
+  if (fs.existsSync(assetsDir)) {
+    fs.cpSync(assetsDir, path.join(OUT_DIR, "assets"), { recursive: true });
   }
 
   // Default root page is Arabic RTL (matching product Arabic default)
