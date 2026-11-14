@@ -1,0 +1,48 @@
+# dz-sandbox
+
+> Deterministic, 100% offline-first local sandbox simulating Algerian payment, courier, and banking APIs (Chargily Pay v2, SATIM, Yalidine, BaridiMob).
+
+## Overview
+dz-sandbox allows developers and AI coding agents (Cursor, Claude Code, Windsurf, Copilot) to integrate and test Algerian e-commerce and fintech happy paths as well as real-world failure edge cases locally without merchant accounts, live credentials, or internet access.
+
+## Base URLs & Ports
+- Control API & Dashboard: http://127.0.0.1:4000
+- Chargily Pay v2 Mock: http://127.0.0.1:4001/api/v2
+- SATIM E-Payment Mock: http://127.0.0.1:4002/payment/rest
+- Yalidine Express Mock: http://127.0.0.1:4003/v1
+- BaridiMob Banking Mock: http://127.0.0.1:4004/mobilebank/service
+
+## Quick CLI Commands for AI Agents
+- Start all mock servers: `npx dz-sandbox start`
+- Check health & active scenarios: `npx dz-sandbox status`
+- Reset state: `npx dz-sandbox reset`
+- Set global scenario: `npx dz-sandbox scenario set <provider> <scenario>`
+- Advance virtual clock: `curl -X POST http://127.0.0.1:4000/__control/clock/advance -H "Content-Type: application/json" -d '{"duration":"2h"}'`
+- Export reproducible state: `npx dz-sandbox export repro.json`
+- Stop daemon: `npx dz-sandbox stop`
+
+## Per-Request Scenario Header
+AI agents can trigger simulated failure behaviors on individual HTTP requests by passing the header:
+`X-DZ-Scenario: <scenario_name>`
+
+### Common Failure Scenarios
+- `declined`: Simulates card issuer payment rejection
+- `insufficient_funds`: Simulates empty account balance
+- `timeout`: Simulates 504 Gateway Timeout
+- `duplicate_webhook`: Dispatches two identical webhooks to verify idempotent handling
+- `delayed_webhook`: Delays webhook delivery to test race conditions
+- `webhook_bad_signature`: Sends tampered HMAC-SHA256 signature to verify authentication
+- `rate_limited`: Returns HTTP 429 Too Many Requests
+- `invalid_wilaya`: Yalidine commune/wilaya mismatch (HTTP 422)
+- `otp_timeout`: BaridiMob mobile banking SMS OTP expiration
+
+## Client Libraries
+- TypeScript/JavaScript: `@dz-sandbox/client`
+- Python (zero-dependency): `packages/python-client` (`from dz_sandbox import SandboxClient`)
+- PHP / Laravel (zero-dependency): `packages/php-client` (`use DzSandbox\SandboxClient`)
+
+## External Resources
+- Live Documentation: https://test-bit-sys.github.io/dz-sandbox/
+- OpenAPI Specification: http://127.0.0.1:4000/__control/openapi.json
+- Honesty & Spec Status Ledger: https://github.com/test-bit-sys/dz-sandbox/blob/main/docs/SPEC_STATUS.md
+- Full Scenario Catalog: https://github.com/test-bit-sys/dz-sandbox/blob/main/docs/scenarios.md

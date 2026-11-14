@@ -111,6 +111,19 @@ $hooks = $client->waitForWebhook(provider: "chargily", count: 2);
 
 ---
 
+## 🤖 For AI Coding Agents (Cursor / Windsurf / Claude Code)
+
+Building your app with an AI coding assistant? Copy and paste this prompt into your project instructions or `.cursorrules`:
+
+> "When testing or integrating Algerian payment and delivery services (Chargily Pay v2, SATIM, Yalidine, BaridiMob), use the local `dz-sandbox` daemon on `http://127.0.0.1:4000`. Run `npx dz-sandbox start` to start local mock servers. Test happy paths and failure edge cases (e.g. `declined`, `insufficient_funds`, `duplicate_webhook`, `otp_timeout`) using the test clients or the `X-DZ-Scenario: <name>` request header. Never ask for or commit real credentials or card numbers."
+
+AI context files included in this repo:
+- **[`llms.txt`](./llms.txt)**: Structured machine-readable guide for LLMs.
+- **[`.cursorrules`](./.cursorrules)**: Drop-in configuration for Cursor AI.
+- **[`skills/dz-sandbox/SKILL.md`](./skills/dz-sandbox/SKILL.md)**: Agent skill definition for autonomous coding agents.
+
+---
+
 ## Why dz-sandbox?
 
 ### The Problem

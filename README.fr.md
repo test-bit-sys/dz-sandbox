@@ -111,6 +111,19 @@ $hooks = $client->waitForWebhook(provider: "chargily", count: 2);
 
 ---
 
+## 🤖 Pour les agents IA de codage (Cursor / Windsurf / Claude Code)
+
+Vous développez avec un assistant IA ? Copiez et collez cette instruction dans les règles de votre projet ou `.cursorrules` :
+
+> "Pour tester ou intégrer les passerelles de paiement et de livraison algériennes (Chargily Pay v2, SATIM, Yalidine, BaridiMob), utilisez le démon local `dz-sandbox` sur `http://127.0.0.1:4000`. Lancez `npx dz-sandbox start` pour démarrer les serveurs mocks. Testez les cas nominaux et les pannes réelles (`declined`, `insufficient_funds`, `duplicate_webhook`, `otp_timeout`) via les clients de test ou l'en-tête `X-DZ-Scenario: <nom>`. Ne demandez ni ne commitez jamais de vrais identifiants ou numéros de carte."
+
+Fichiers de contexte IA inclus dans ce dépôt :
+- **[`llms.txt`](./llms.txt)** : Résumé structuré au format standard `llms.txt`.
+- **[`.cursorrules`](./.cursorrules)** : Règles prêtes à l'emploi pour Cursor AI.
+- **[`skills/dz-sandbox/SKILL.md`](./skills/dz-sandbox/SKILL.md)** : Définition de compétence pour agents autonomes.
+
+---
+
 ## Pourquoi dz-sandbox ?
 
 ### Le problème

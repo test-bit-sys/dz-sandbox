@@ -1,0 +1,22 @@
+# dz-sandbox Cursor Rules for Algerian Payment & Delivery APIs
+
+When working on Algerian payment, banking, or courier integrations (Chargily Pay v2, SATIM, Yalidine, BaridiMob):
+
+1. **Never use real merchant credentials, real card PANs, or live API endpoints in local development or test suites.**
+2. **Run dz-sandbox locally:**
+   - Start the daemon: `npx dz-sandbox start` (or `docker compose up`)
+   - Check status: `npx dz-sandbox status`
+   - Control & Dashboard: `http://127.0.0.1:4000`
+   - Chargily Pay v2 Mock: `http://127.0.0.1:4001/api/v2`
+   - SATIM E-Payment Mock: `http://127.0.0.1:4002/payment/rest`
+   - Yalidine Express Mock: `http://127.0.0.1:4003/v1`
+   - BaridiMob Banking Mock: `http://127.0.0.1:4004/mobilebank/service`
+3. **Always write tests for failure modes and edge cases:**
+   - Pass `X-DZ-Scenario: <name>` in request headers to simulate specific errors (e.g. `declined`, `insufficient_funds`, `timeout`, `duplicate_webhook`, `otp_timeout`).
+   - Use official test clients:
+     - TypeScript/JS: `@dz-sandbox/client`
+     - Python: `from dz_sandbox import SandboxClient`
+     - PHP/Laravel: `use DzSandbox\SandboxClient;`
+   - Advance virtual clock for webhook retries and multi-day delivery lifecycles: `await sandbox.clock.advance('2h');`
+4. **Idempotency is mandatory:**
+   - Always verify your webhook handlers handle duplicate callbacks (`duplicate_webhook`) without double-fulfilling orders.

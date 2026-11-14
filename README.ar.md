@@ -142,6 +142,23 @@ $hooks = $client->waitForWebhook(provider: "chargily", count: 2);
 
 <div dir="rtl">
 
+## 🤖 لمطوري الذكاء الاصطناعي ووكلاء البرمجة (Cursor / Windsurf / Claude Code)
+
+إذا كنت تبني تطبيقك بمساعدة وكلاء البرمجة الذكية (AI Agents)، يمكنك نسخ هذا التوجيه (Prompt) ووضعه في تعليمات الـ Agent أو ملف `.cursorrules` لديك:
+
+> "عند تطوير أو اختبار خدمات الدفع والتوصيل في الجزائر (Chargily Pay v2، SATIM، Yalidine، أو BaridiMob)، استخدم بيئة `dz-sandbox` المحلية عبر الرابط `http://127.0.0.1:4000`. شغّل الأمر `npx dz-sandbox start` لبدء الخوادم المحلية، واختبر سيناريوهات الأعطال والحالات الحدية (مثل `declined`، `insufficient_funds`، `duplicate_webhook`، `otp_timeout`) باستخدام عملاء الاختبار أو ترويسة الطلب `X-DZ-Scenario: <name>`. لا تطلب ولا تسجل أبداً أي مفاتيح حقيقية أو أرقام بطاقات حقيقية."
+
+ملفات مهيأة للذكاء الاصطناعي متوفرة داخل المستودع:
+- **[`llms.txt`](./llms.txt)**: دليل قياسي مقروء آلياً لنماذج الذكاء الاصطناعي.
+- **[`.cursorrules`](./.cursorrules)**: إعدادات جاهزة لمحرر Cursor AI.
+- **[`skills/dz-sandbox/SKILL.md`](./skills/dz-sandbox/SKILL.md)**: مهارة جاهزة لوكلاء الذكاء الاصطناعي (Agent Skill).
+
+</div>
+
+---
+
+<div dir="rtl">
+
 ## لماذا dz-sandbox؟
 
 ### المشكلة في بيئات التطوير الحالية
