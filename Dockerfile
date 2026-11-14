@@ -8,6 +8,9 @@ COPY packages/control/package.json packages/control/
 COPY packages/mock-chargily/package.json packages/mock-chargily/
 COPY packages/mock-satim/package.json packages/mock-satim/
 COPY packages/mock-yalidine/package.json packages/mock-yalidine/
+COPY packages/mock-baridimob/package.json packages/mock-baridimob/
+COPY packages/mock-zrexpress/package.json packages/mock-zrexpress/
+COPY packages/mock-maystro/package.json packages/mock-maystro/
 COPY packages/client/package.json packages/client/
 COPY packages/cli/package.json packages/cli/
 COPY examples/express-checkout/package.json examples/express-checkout/
@@ -29,6 +32,7 @@ ENV NODE_ENV=production \
     DZ_CHARGILY_PORT=4001 \
     DZ_SATIM_PORT=4002 \
     DZ_YALIDINE_PORT=4003 \
+    DZ_BARIDIMOB_PORT=4004 \
     DZ_STORE=memory \
     DZ_SCENARIOS_DIR=/app/scenarios
 
@@ -47,6 +51,12 @@ COPY --from=builder /app/packages/mock-satim/package.json packages/mock-satim/
 COPY --from=builder /app/packages/mock-satim/dist packages/mock-satim/dist
 COPY --from=builder /app/packages/mock-yalidine/package.json packages/mock-yalidine/
 COPY --from=builder /app/packages/mock-yalidine/dist packages/mock-yalidine/dist
+COPY --from=builder /app/packages/mock-baridimob/package.json packages/mock-baridimob/
+COPY --from=builder /app/packages/mock-baridimob/dist packages/mock-baridimob/dist
+COPY --from=builder /app/packages/mock-zrexpress/package.json packages/mock-zrexpress/
+COPY --from=builder /app/packages/mock-zrexpress/dist packages/mock-zrexpress/dist
+COPY --from=builder /app/packages/mock-maystro/package.json packages/mock-maystro/
+COPY --from=builder /app/packages/mock-maystro/dist packages/mock-maystro/dist
 COPY --from=builder /app/packages/client/package.json packages/client/
 COPY --from=builder /app/packages/client/dist packages/client/dist
 COPY --from=builder /app/packages/cli/package.json packages/cli/
@@ -59,7 +69,7 @@ RUN npm ci --omit=dev --omit=optional --ignore-scripts && npm cache clean --forc
 
 USER sandbox
 
-EXPOSE 4000 4001 4002 4003
+EXPOSE 4000 4001 4002 4003 4004
 
 HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:' + (process.env.DZ_CONTROL_PORT || 4000) + '/__control/health').then(r => { if (!r.ok) process.exit(1); }).catch(() => process.exit(1))"

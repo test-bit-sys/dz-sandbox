@@ -13,8 +13,8 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "npm run build -w @dz-sandbox/core && npm run build -w @dz-sandbox/control -w @dz-sandbox/mock-chargily -w @dz-sandbox/mock-satim -w @dz-sandbox/mock-yalidine -w @dz-sandbox/mock-zrexpress -w @dz-sandbox/mock-maystro -w @dz-sandbox/client && npm run build -w dz-sandbox",
-    "typecheck": "npm run typecheck -w @dz-sandbox/core && npm run typecheck -w @dz-sandbox/control -w @dz-sandbox/mock-chargily -w @dz-sandbox/mock-satim -w @dz-sandbox/mock-yalidine -w @dz-sandbox/mock-zrexpress -w @dz-sandbox/mock-maystro -w @dz-sandbox/client && npm run typecheck -w dz-sandbox",
+    "build": "npm run build -w @dz-sandbox/core && npm run build -w @dz-sandbox/control -w @dz-sandbox/mock-chargily -w @dz-sandbox/mock-satim -w @dz-sandbox/mock-yalidine -w @dz-sandbox/mock-baridimob -w @dz-sandbox/mock-zrexpress -w @dz-sandbox/mock-maystro -w @dz-sandbox/client && npm run build -w dz-sandbox",
+    "typecheck": "npm run typecheck -w @dz-sandbox/core && npm run typecheck -w @dz-sandbox/control -w @dz-sandbox/mock-chargily -w @dz-sandbox/mock-satim -w @dz-sandbox/mock-yalidine -w @dz-sandbox/mock-baridimob -w @dz-sandbox/mock-zrexpress -w @dz-sandbox/mock-maystro -w @dz-sandbox/client && npm run typecheck -w dz-sandbox",
     "lint": "eslint \"packages/*/src/**/*.ts\"",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

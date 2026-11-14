@@ -43,6 +43,12 @@ export default defineConfig({
           functions: 85,
           lines: 85,
         },
+        'packages/mock-baridimob/src/**/*.ts': {
+          statements: 85,
+          branches: 85,
+          functions: 85,
+          lines: 85,
+        },
       },
     },
   },

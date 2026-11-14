@@ -61,6 +61,7 @@ export async function runDoctor(
     { name: 'chargily', port: Number.parseInt(env.DZ_CHARGILY_PORT ?? '4001', 10) || 4001 },
     { name: 'satim', port: Number.parseInt(env.DZ_SATIM_PORT ?? '4002', 10) || 4002 },
     { name: 'yalidine', port: Number.parseInt(env.DZ_YALIDINE_PORT ?? '4003', 10) || 4003 },
+    { name: 'baridimob', port: Number.parseInt(env.DZ_BARIDIMOB_PORT ?? '4004', 10) || 4004 },
   ];
 
   const ports: PortCheckResult[] = [];
@@ -79,6 +80,7 @@ export async function runDoctor(
   const chPort = targets[1]!.port;
   const saPort = targets[2]!.port;
   const yaPort = targets[3]!.port;
+  const bmPort = targets[4]!.port;
 
   const envSnippet = [
     `# dz-sandbox local URLs`,
@@ -91,6 +93,7 @@ export async function runDoctor(
     `YALIDINE_BASE_URL=http://127.0.0.1:${yaPort}/v1`,
     `YALIDINE_API_ID=test_api_id`,
     `YALIDINE_API_TOKEN=test_api_token`,
+    `BARIDIMOB_BASE_URL=http://127.0.0.1:${bmPort}/mobilebank/service`,
   ].join('\n');
 
   return {

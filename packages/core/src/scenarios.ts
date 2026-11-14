@@ -269,6 +269,55 @@ export const BUILT_IN_SCENARIOS: ScenarioDefinition[] = [
     behavior: { outcome: 'status_stuck' },
     builtIn: true,
   },
+  // BaridiMob scenarios
+  {
+    name: 'invalid_otp',
+    provider: 'baridimob',
+    category: 'payment',
+    description: 'Rejects device or transfer OTP confirmation with code 109.',
+    behavior: { outcome: 'invalid_otp', errorCode: 109, errorMessage: 'INVALID_CONFIRMATION_CODE' },
+    builtIn: true,
+  },
+  {
+    name: 'expired_otp',
+    provider: 'baridimob',
+    category: 'payment',
+    description: 'Simulates expired confirmation code with code 110.',
+    behavior: { outcome: 'expired_otp', errorCode: 110, errorMessage: 'EXPIRED_CONFIRMATION_CODE' },
+    builtIn: true,
+  },
+  {
+    name: 'too_many_attempts',
+    provider: 'baridimob',
+    category: 'payment',
+    description: 'Simulates too many confirmation attempts with code 111.',
+    behavior: { outcome: 'too_many_attempts', errorCode: 111, errorMessage: 'TOO_MANY_CONFIRMATION_ATTEMPTS' },
+    builtIn: true,
+  },
+  {
+    name: 'account_locked',
+    provider: 'baridimob',
+    category: 'payment',
+    description: 'Simulates locked BaridiMob account with code 104.',
+    behavior: { outcome: 'account_locked', errorCode: 104, errorMessage: 'ACCOUNT_LOCKED' },
+    builtIn: true,
+  },
+  {
+    name: 'session_expired',
+    provider: 'baridimob',
+    category: 'payment',
+    description: 'Forces session closed with code 102.',
+    behavior: { outcome: 'session_expired', errorCode: 102, errorMessage: 'SESSION_CLOSED' },
+    builtIn: true,
+  },
+  {
+    name: 'device_confirm_required',
+    provider: 'baridimob',
+    category: 'payment',
+    description: 'Forces device attachment/confirmation flow with code 107.',
+    behavior: { outcome: 'device_confirm_required', errorCode: 107, errorMessage: 'DEVICE_CONFIRM_REQUIRED' },
+    builtIn: true,
+  },
 ];
 
 const ScenarioFileSchema = z.union([

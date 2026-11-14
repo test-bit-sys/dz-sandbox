@@ -72,6 +72,24 @@ Config files:
 
 ---
 
+## 3c. BaridiMob Mobile Banking (`mock-baridimob`)
+
+Config file: `packages/mock-baridimob/src/baridimob.spec.ts`  
+Official reference: Algérie Poste BaridiMob Mobile Banking reverse-engineered / open-source SDK contract (`baridimob` client library). Default port: `4004`. Base path: `/mobilebank/service` (also mounted at root `/` for convenience).
+
+| Endpoint / Feature | Implemented | Status | Source / Notes |
+| --- | --- | --- | --- |
+| Device Auth & Signature (`devid`, `sign`, `timestamp`) | Yes | Partial | Client signatures validated; simulation accepts standard sha256 or test signatures |
+| `POST /login` | Yes | Partial | Supports standard credentials (`username`, `password`), returning numeric `result` code (0 = success, 103 = invalid, 104 = locked, 107 = device confirm required) |
+| `POST /deviceConfirm` | Yes | Partial | Validates SMS OTP code (`1234` by default) with result codes (109 = invalid, 110 = expired, 111 = max attempts) |
+| `POST /accounts` | Yes | Partial | Returns seed accounts (`00799999000000000001`) with balance, currency (`DZD`), and status |
+| `POST /cards` | Yes | Partial | Returns seed Edahabia card details (`card_edahabia_01`, masked number, status) |
+| `POST /transferCheck` & `POST /transferExec` | Yes | Partial | RIP-to-RIP internal funds transfers with balance check and transaction history updates |
+| `POST /history` | Yes | Partial | Virtual-clock driven transaction history of transfers and payments |
+| `POST /paymentCategories`, `/paymentProviders`, `/paymentPerform` | Yes | Partial | Utility/bill payments (Sonelgaz, ADE, Mobilis, Djezzy, Ooredoo) |
+
+---
+
 ## 4. Docs & Fixtures Needed From Maintainer
 
 To upgrade entries from `Unverified` / `Partial` to `Verified`, please provide:

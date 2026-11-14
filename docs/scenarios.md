@@ -53,6 +53,20 @@ Every scenario controls how mocks respond **deterministically**, without merchan
 
 ---
 
+## Mobile Banking Scenarios (`mock-baridimob`)
+
+| Name | Behavior | Real-World Failure Tested |
+| --- | --- | --- |
+| `invalid_otp` | Returns result `109` (invalid OTP) on device confirmation | Incorrect SMS verification code handling |
+| `expired_otp` | Returns result `110` (expired OTP) on device confirmation | Expired SMS verification code and resend flow |
+| `too_many_attempts` | Returns result `111` (too many failed attempts) | Rate-limiting & brute-force lockdown UI |
+| `account_locked` | Returns result `104` (account locked) on login | Account suspension error handling |
+| `session_expired` | Returns result `143` (session expired) on protected endpoints | Token refresh / re-login redirection |
+| `device_confirm_required` | Forces login to return result `107` (device confirmation required) | Triggering 2FA / device pairing flow |
+| `insufficient_funds` | Rejects transfer with result `115` (insufficient balance) | Handling transfer balance check rejections |
+
+---
+
 ## Custom Scenarios (YAML / JSON Hot-Reload)
 
 Drop `.yaml` or `.json` files in `./scenarios` (or set `DZ_SCENARIOS_DIR`):

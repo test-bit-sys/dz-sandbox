@@ -15,6 +15,7 @@ import { createControlServer } from '@dz-sandbox/control';
 import { CHARGILY_SPEC, createChargilyServer } from '@dz-sandbox/mock-chargily';
 import { createSatimServer } from '@dz-sandbox/mock-satim';
 import { createYalidineServer } from '@dz-sandbox/mock-yalidine';
+import { createBaridiMobServer } from '@dz-sandbox/mock-baridimob';
 
 export interface SandboxRuntimeOptions {
   host?: string;
@@ -22,6 +23,7 @@ export interface SandboxRuntimeOptions {
   chargilyPort?: number;
   satimPort?: number;
   yalidinePort?: number;
+  baridimobPort?: number;
   store?: SandboxStore;
   seed?: number;
   scenariosDir?: string;
@@ -35,12 +37,14 @@ export interface SandboxRuntime {
     chargily: number;
     satim: number;
     yalidine: number;
+    baridimob: number;
   };
   urls: {
     control: string;
     chargily: string;
     satim: string;
     yalidine: string;
+    baridimob: string;
   };
   ctx: SandboxContext;
   webhooks: WebhookDispatcher;
@@ -49,6 +53,7 @@ export interface SandboxRuntime {
     chargily: FastifyInstance;
     satim: FastifyInstance;
     yalidine: FastifyInstance;
+    baridimob: FastifyInstance;
   };
   stop(): Promise<void>;
 }
@@ -98,18 +103,22 @@ export async function startSandboxRuntime(
   const reqChargilyPort = options.chargilyPort ?? parsePort(process.env.DZ_CHARGILY_PORT, 4001);
   const reqSatimPort = options.satimPort ?? parsePort(process.env.DZ_SATIM_PORT, 4002);
   const reqYalidinePort = options.yalidinePort ?? parsePort(process.env.DZ_YALIDINE_PORT, 4003);
+  const reqBaridimobPort = options.baridimobPort ?? parsePort(process.env.DZ_BARIDIMOB_PORT, 4004);
 
   const chargily = createChargilyServer({ ctx, webhooks });
   const satim = createSatimServer({ ctx });
   const yalidine = createYalidineServer({ ctx, webhooks });
+  const baridimob = createBaridiMobServer({ ctx });
 
   await chargily.listen({ host, port: reqChargilyPort });
   await satim.listen({ host, port: reqSatimPort });
   await yalidine.listen({ host, port: reqYalidinePort });
+  await baridimob.listen({ host, port: reqBaridimobPort });
 
   const chargilyPort = actualPort(chargily, reqChargilyPort);
   const satimPort = actualPort(satim, reqSatimPort);
   const yalidinePort = actualPort(yalidine, reqYalidinePort);
+  const baridimobPort = actualPort(baridimob, reqBaridimobPort);
 
   const control = createControlServer({
     store,
@@ -121,6 +130,7 @@ export async function startSandboxRuntime(
       chargily: { status: 'ok', port: chargilyPort },
       satim: { status: 'ok', port: satimPort },
       yalidine: { status: 'ok', port: yalidinePort },
+      baridimob: { status: 'ok', port: baridimobPort },
     }),
     onTrigger: async ({ provider, eventType, targetUrl, payload }) => {
       if (!targetUrl) {
@@ -155,19 +165,21 @@ export async function startSandboxRuntime(
       chargily: chargilyPort,
       satim: satimPort,
       yalidine: yalidinePort,
+      baridimob: baridimobPort,
     },
     urls: {
       control: `http://${displayHost}:${controlPort}`,
       chargily: `http://${displayHost}:${chargilyPort}/api/v2`,
       satim: `http://${displayHost}:${satimPort}/payment/rest`,
       yalidine: `http://${displayHost}:${yalidinePort}/v1`,
+      baridimob: `http://${displayHost}:${baridimobPort}/mobilebank/service`,
     },
     ctx,
     webhooks,
-    servers: { control, chargily, satim, yalidine },
+    servers: { control, chargily, satim, yalidine, baridimob },
     async stop() {
       scenarios.stopWatching();
-      for (const s of [control, chargily, satim, yalidine]) {
+      for (const s of [control, chargily, satim, yalidine, baridimob]) {
         s.server.closeIdleConnections?.();
       }
       await Promise.all([
@@ -175,6 +187,7 @@ export async function startSandboxRuntime(
         chargily.close(),
         satim.close(),
         yalidine.close(),
+        baridimob.close(),
       ]);
       store.close();
     },

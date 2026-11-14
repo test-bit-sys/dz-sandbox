@@ -1,0 +1,115 @@
+/**
+ * STATUS: PARTIAL / SIMULATED (flag: simulated_from_sdk_contract)
+ *
+ * All BaridiMob endpoint names, result codes, error shapes, and seed account/card
+ * structures live in this single configurable file. Contract aligned with the
+ * community open-source BaridiMob SDK.
+ */
+export const BARIDIMOB_SPEC = {
+  verified: false as const,
+  currencyDzd: 'DZD',
+  defaultOtp: '123456',
+  resultCodes: {
+    success: 0,
+    badRequest: 1,
+    internalServerError: 2,
+    unsupportedOperation: 3,
+    invalidAccessToken: 101,
+    sessionClosed: 102,
+    invalidLoginPass: 103,
+    accountLocked: 104,
+    deviceIdRequired: 105,
+    illegalDevice: 106,
+    deviceConfirmRequired: 107,
+    transactionConfirmRequired: 108,
+    invalidConfirmationCode: 109,
+    expiredConfirmationCode: 110,
+    tooManyConfirmationAttempts: 111,
+    parametersComparisonFailed: 112,
+    transactionDeclined: 115,
+    invalidLogin: 120,
+    invalidPassword: 121,
+    expiredPassword: 125,
+    hashedPasswordError: 143,
+  },
+  seedAccounts: [
+    {
+      id: '00799999000000000001',
+      number: '00799999000000000001',
+      balance: 45000.0,
+      currency: 'DZD',
+      status: 'OPEN',
+    },
+    {
+      id: '00799999000000000002',
+      number: '00799999000000000002',
+      balance: 12500.5,
+      currency: 'DZD',
+      status: 'OPEN',
+    },
+  ],
+  seedCards: [
+    {
+      id: 'card_edahabia_01',
+      number: '628051******0001',
+      name: 'Carte Edahabia Classique',
+      brand: 'EDAHABIA',
+      status: 1,
+      expDate: '12/28',
+      type: 1,
+      category: 'REGULAR',
+      balance: 45000.0,
+      currency: 'DZD',
+      embossedName: 'MOHAMED BENALI',
+      active: true,
+      pinNotSet: false,
+      linkedAccounts: ['00799999000000000001'],
+      isDebitAllowed: true,
+    },
+  ],
+  seedLimits: [
+    {
+      uid: 'lim_daily_withdrawal',
+      name: 'Plafond retrait quotidien',
+      description: 'Retrait quotidien GAB Algérie Poste',
+      type: 1,
+      amount: 50000,
+      usedAmount: 10000,
+      opCount: 5,
+      usedOpCount: 1,
+      currency: 'DZD',
+      active: true,
+      changeable: true,
+      permanent: true,
+      perTransaction: false,
+    },
+  ],
+  seedTransactions: [
+    {
+      amount: 3500.0,
+      currency: 'DZD',
+      description: 'Virement reçu de 00799999000000000099',
+      type: '1',
+      tid: 'tx_seed_001',
+      timestamp: '20260115103000',
+      feeAmount: 0,
+      details: [
+        { id: 'refNum', value: 'REF-BARIDI-1001' },
+        { id: 'sender', value: 'AMINE KHELIFI' },
+      ],
+    },
+    {
+      amount: 12000.0,
+      currency: 'DZD',
+      description: 'Paiement commande en ligne',
+      type: '1',
+      tid: 'tx_seed_002',
+      timestamp: '20260116142000',
+      feeAmount: 0,
+      details: [
+        { id: 'refNum', value: 'REF-BARIDI-1002' },
+        { id: 'sender', value: 'SARL TECH DZ' },
+      ],
+    },
+  ],
+} as const;

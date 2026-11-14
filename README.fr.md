@@ -46,6 +46,7 @@ npx dz-sandbox start
 | **Mock Chargily Pay v2** | `http://127.0.0.1:4001/api/v2` | Checkouts, clients, produits, prix, liens de paiement, page de paiement hébergée locale, webhooks signés HMAC-SHA256 |
 | **Mock SATIM E-Payment** | `http://127.0.0.1:4002/payment/rest` | Enregistrement (`register.do`), formulaire de fausses cartes (`4000000000000001`..`05`), confirmation, remboursements bornés |
 | **Mock Yalidine Express** | `http://127.0.0.1:4003/v1` | CRUD colis, calcul des frais, 69 wilayas / 1 541 communes, progression de cycle de vie via horloge virtuelle |
+| **Mock BaridiMob Banking** | `http://127.0.0.1:4004/mobilebank/service` | Algérie Poste mobile banking : connexion, confirmation OTP SMS, virements RIP à RIP, comptes, cartes et factures |
 
 ### Rediriger le SDK officiel `@chargily/chargily-pay` vers le Sandbox
 

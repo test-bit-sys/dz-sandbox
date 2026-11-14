@@ -271,7 +271,7 @@ export function renderDashboardHtml(): string {
     }
 
     function buildCurl(req) {
-      const portMap = { chargily: 4001, satim: 4002, yalidine: 4003 };
+      const portMap = { chargily: 4001, satim: 4002, yalidine: 4003, baridimob: 4004 };
       const port = portMap[req.provider] || 4000;
       const headers = Object.entries(req.headers || {})
         .filter(([k]) => !['host','content-length','connection'].includes(k.toLowerCase()))
@@ -293,7 +293,7 @@ export function renderDashboardHtml(): string {
     }
 
     function renderOverview() {
-      const providers = ['chargily', 'satim', 'yalidine'];
+      const providers = ['chargily', 'satim', 'yalidine', 'baridimob'];
       const cards = providers.map((p) => {
         const cur = (lastState.defaults && lastState.defaults[p]) || (p === 'yalidine' ? 'created_ok' : 'success');
         return '<div class="card"><h3>' + esc(p.toUpperCase()) + '</h3>' +
@@ -336,6 +336,7 @@ export function renderDashboardHtml(): string {
                 '<option value="chargily"' + (reqFilter === 'chargily' ? ' selected' : '') + '>chargily</option>' +
                 '<option value="satim"' + (reqFilter === 'satim' ? ' selected' : '') + '>satim</option>' +
                 '<option value="yalidine"' + (reqFilter === 'yalidine' ? ' selected' : '') + '>yalidine</option>' +
+                '<option value="baridimob"' + (reqFilter === 'baridimob' ? ' selected' : '') + '>baridimob</option>' +
               '</select>' +
             '</label>' +
           '</div>' +
@@ -380,7 +381,7 @@ export function renderDashboardHtml(): string {
         '<div class="card" style="margin-bottom:16px">' +
           '<h3>' + esc(t('scenarios.setProvider')) + '</h3>' +
           '<div class="row-flex">' +
-            '<select id="scen-provider" aria-label="Scenario provider"><option value="chargily">chargily</option><option value="satim">satim</option><option value="yalidine">yalidine</option></select>' +
+            '<select id="scen-provider" aria-label="Scenario provider"><option value="chargily">chargily</option><option value="satim">satim</option><option value="yalidine">yalidine</option><option value="baridimob">baridimob</option></select>' +
             '<select id="scen-name" aria-label="Scenario name">' + options + '</select>' +
             '<button class="btn btn-accent" type="button" onclick="applyProviderScenario()">' + esc(t('scenarios.apply')) + '</button>' +
           '</div>' +
@@ -394,7 +395,7 @@ export function renderDashboardHtml(): string {
     }
 
     function renderMatrix() {
-      const providers = ['chargily', 'satim', 'yalidine'];
+      const providers = ['chargily', 'satim', 'yalidine', 'baridimob'];
       const hitCounts = {};
       for (const r of lastRequests) {
         const k = r.provider + ':' + r.scenario;
