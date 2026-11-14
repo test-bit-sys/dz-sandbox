@@ -77,11 +77,13 @@ Config files:
 Config file: `packages/mock-baridimob/src/baridimob.spec.ts`  
 Official reference: Algérie Poste BaridiMob Mobile Banking reverse-engineered / open-source SDK contract (`baridimob` client library). Default port: `4004`. Base path: `/mobilebank/service` (also mounted at root `/` for convenience).
 
+> **Architectural Note:** BaridiMob is an **Account-Holder Mobile Banking API** (personal account access, RIP transfers, bill payments), **not** a Merchant Payment Gateway (like Chargily Pay or SATIM). It should never be integrated as a direct checkout payment method on an e-commerce store.
+
 | Endpoint / Feature | Implemented | Status | Source / Notes |
 | --- | --- | --- | --- |
 | Device Auth & Signature (`devid`, `sign`, `timestamp`) | Yes | Partial | Client signatures validated; simulation accepts standard sha256 or test signatures |
 | `POST /login` | Yes | Partial | Supports standard credentials (`username`, `password`), returning numeric `result` code (0 = success, 103 = invalid, 104 = locked, 107 = device confirm required) |
-| `POST /deviceConfirm` | Yes | Partial | Validates SMS OTP code (`1234` by default) with result codes (109 = invalid, 110 = expired, 111 = max attempts) |
+| `POST /deviceConfirm` | Yes | Partial | Validates SMS OTP code (`123456` by default) with result codes (109 = invalid, 110 = expired, 111 = max attempts) |
 | `POST /accounts` | Yes | Partial | Returns seed accounts (`00799999000000000001`) with balance, currency (`DZD`), and status |
 | `POST /cards` | Yes | Partial | Returns seed Edahabia card details (`card_edahabia_01`, masked number, status) |
 | `POST /transferCheck` & `POST /transferExec` | Yes | Partial | RIP-to-RIP internal funds transfers with balance check and transaction history updates |

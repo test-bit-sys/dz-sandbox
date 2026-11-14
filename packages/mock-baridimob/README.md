@@ -4,6 +4,8 @@ Local deterministic mock server for **BaridiMob** (Algérie Poste mobile banking
 
 Simulates the core APIs of BaridiMob (`https://baridimob.poste.dz/mobilebank/service`) offline, allowing developers to test mobile banking integrations, payment verification, transfer flows, and SMS OTP confirmation without real banking credentials or risk of account locking.
 
+> **Important Notice:** BaridiMob is a **Personal Mobile Banking** API (for account owners to transfer funds, pay bills, and manage cards), **not** a Merchant Payment Gateway (like Chargily Pay or SATIM). Do not use this as an e-commerce checkout payment method.
+
 ## Features
 
 - **Device Attach & Confirmation:** Simulates device registration with mock SMS OTP codes (`123456`).
