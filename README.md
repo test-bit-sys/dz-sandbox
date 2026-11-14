@@ -6,7 +6,7 @@
 
 **Test what fails, not just what succeeds.**
 
-A deterministic, 100% offline-first local sandbox that simulates Algerian payment and delivery APIs (**Chargily Pay v2**, **SATIM**, and **Yalidine**) so developers can integrate and test happy paths *and* real-world failure modes locally without merchant accounts, live credentials, or internet access.
+A deterministic, 100% offline-first local sandbox that simulates Algerian payment and delivery APIs (**Chargily Pay v2**, **SATIM**, **Yalidine**, and **BaridiMob** mobile banking) so developers can integrate and test happy paths *and* real-world failure modes locally without merchant accounts, live credentials, or internet access.
 
 [![CI](https://github.com/test-bit-sys/dz-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/test-bit-sys/dz-sandbox/actions/workflows/ci.yml)
 [![Documentation](https://img.shields.io/badge/docs-live%20site-brightgreen.svg)](https://test-bit-sys.github.io/dz-sandbox/)
@@ -20,7 +20,7 @@ A deterministic, 100% offline-first local sandbox that simulates Algerian paymen
 <!-- TODO: Record and add docs/assets/demo.gif (see docs/DEMO_SCRIPT.md) -->
 
 > ### Disclaimer
-> **Unofficial.** Not affiliated with Chargily, SATIM, or Yalidine. Behavior is simulated and may differ from production. Always test against each provider's real sandbox before going live. See [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md) for verified versus unverified scope.
+> **Unofficial.** Not affiliated with Chargily, SATIM, Yalidine, or BaridiMob (Algérie Poste). Behavior is simulated and may differ from production. Always test against each provider's real sandbox before going live. See [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md) for verified versus unverified scope.
 
 ---
 
@@ -98,6 +98,17 @@ client.scenario("chargily", "duplicate_webhook")
 hooks = client.wait_for_webhook(provider="chargily", count=2)
 ```
 
+Prefer PHP / Laravel / Pest? A zero-dependency client is included (`packages/php-client`):
+
+```php
+use DzSandbox\SandboxClient;
+
+$client = new SandboxClient("http://127.0.0.1:4000");
+$client->reset();
+$client->scenario("chargily", "duplicate_webhook");
+$hooks = $client->waitForWebhook(provider: "chargily", count: 2);
+```
+
 ---
 
 ## Why dz-sandbox?
@@ -125,6 +136,7 @@ Every endpoint in `dz-sandbox` is audited against official references and tracke
 | **Chargily Pay v2** | `@dz-sandbox/mock-chargily` | **Verified / Partial** | Customer, product, price, and checkout lifecycles and HMAC-SHA256 `signature` verified against `@chargily/chargily-pay@2.1.0`. Fee calculation and edge 4xx payloads simulated | [chargily.spec.ts](./packages/mock-chargily/src/chargily.spec.ts) |
 | **SATIM E-Payment** | `@dz-sandbox/mock-satim` | **Unverified (Simulated)** | SmartVista registration (`register.do`), hosted test cards (`4000000000000001`..`05`), confirmation, and bounded refunds simulated. Exact bank-specific paths and error codes require the official bank technical PDF | [satim.spec.ts](./packages/mock-satim/src/satim.spec.ts) |
 | **Yalidine Express** | `@dz-sandbox/mock-yalidine` | **Partial / Unverified** | All 69 wilayas and 1,541 communes (AR/FR/EN, coordinates excluded) imported from official administrative gazettes. Parcel CRUD, fees, and histories simulated; response envelopes await live captures | [yalidine.spec.ts](./packages/mock-yalidine/src/yalidine.spec.ts) |
+| **BaridiMob Banking** | `@dz-sandbox/mock-baridimob` | **Simulated / Mock** | Algérie Poste mobile banking: login, device attachment, SMS OTP, accounts & cards, RIP transfers, and bill payments | [baridimob.spec.ts](./packages/mock-baridimob/src/baridimob.spec.ts) |
 | **ZR Express** | `@dz-sandbox/mock-zrexpress` | **Scaffold (Unverified)** | Package skeleton and scenario middleware wired; returns `501 NOT_IMPLEMENTED_AWAITING_SPEC` until official specs or sanitized captures are added | [zrexpress.spec.ts](./packages/mock-zrexpress/src/zrexpress.spec.ts) |
 | **Maystro Delivery** | `@dz-sandbox/mock-maystro` | **Scaffold (Unverified)** | Package skeleton and scenario middleware wired; returns `501 NOT_IMPLEMENTED_AWAITING_SPEC` until official specs or sanitized captures are added | [maystro.spec.ts](./packages/mock-maystro/src/maystro.spec.ts) |
 
@@ -132,13 +144,14 @@ Full honesty ledger: [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md)
 
 ---
 
-## Built-in Failure Scenarios (27 Scenarios)
+## Built-in Failure Scenarios (33 Scenarios)
 
 Switch scenarios instantly via header (`X-DZ-Scenario: <name>`), Dashboard, CLI, or test client:
 
 | Category | Examples | Purpose |
 | --- | --- | --- |
 | **Payment Failures** | `declined`, `insufficient_funds`, `expired_card`, `invalid_card`, `amount_mismatch` | Verify checkout UI handles card declines and currency/amount mismatches gracefully |
+| **Mobile Banking** | `otp_timeout`, `rip_invalid`, `transfer_limit_exceeded` | Test SMS OTP expiration, invalid recipient RIP format, and maximum balance transfer caps |
 | **Network & Gateway** | `timeout`, `network_drop`, `gateway_500`, `rate_limited` | Ensure your HTTP clients implement backoff, circuit-breaking, and rate-limit (`429`) handling |
 | **Webhook Delivery** | `duplicate_webhook`, `delayed_webhook`, `out_of_order_webhooks`, `webhook_bad_signature`, `webhook_never_sent` | Test idempotent order fulfillment and cryptographic signature rejection |
 | **Delivery Lifecycles** | `lifecycle_fast`, `status_stuck`, `delivery_failed`, `returned_to_sender`, `phone_rejected`, `invalid_wilaya` | Test tracking webhooks, commune validation errors, and multi-day parcel returns |
@@ -153,7 +166,8 @@ Complete scenario catalog: [docs/scenarios.md](./docs/scenarios.md)
 
 The dashboard is served by the control plane at `http://127.0.0.1:4000`:
 - **Native Arabic RTL Default:** Full bilingual Arabic, French, and English toggle.
-- **Scenario Matrix:** View live test coverage across all 27 scenarios per provider.
+- **Live Stream Auto-Refresh:** Real-time polling mode (2.5s) to watch incoming requests and webhooks without manual refresh.
+- **Scenario Matrix:** View live test coverage across all 33 scenarios per provider.
 - **Live Request & Webhook Inspector:** Inspect HTTP headers and bodies with automatic secret redaction.
 - **Hosted Payment Previews:** Complete test checkouts directly in an embedded iframe.
 

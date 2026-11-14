@@ -1,0 +1,31 @@
+{
+  "name": "dz-sandbox/client",
+  "description": "Zero-dependency PHP client for dz-sandbox Control API (Chargily Pay, SATIM, Yalidine, BaridiMob)",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "dz-sandbox contributors",
+      "homepage": "https://github.com/test-bit-sys/dz-sandbox"
+    }
+  ],
+  "require": {
+    "php": ">=7.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "DzSandbox\\": "src/"
+    }
+  },
+  "keywords": [
+    "chargily",
+    "satim",
+    "yalidine",
+    "baridimob",
+    "edahabia",
+    "cib",
+    "algeria",
+    "sandbox",
+    "testing"
+  ]
+}

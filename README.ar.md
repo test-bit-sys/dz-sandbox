@@ -8,7 +8,7 @@
 
 **اختبر ما يفشل، لا ما ينجح فقط.**
 
-بيئة محاكاة محلية، حتمية وتعمل بالكامل **دون إنترنت** لبوابات الدفع والتوصيل في الجزائر (**Chargily Pay v2**، **SATIM**، **Yalidine**) لتمكين المطورين من اختبار مسارات النجاح وسيناريوهات الأعطال الحقيقية محلياً دون الحاجة إلى حسابات تجارية، أو بطاقات حقيقية، أو اتصال بالإنترنت.
+بيئة محاكاة محلية، حتمية وتعمل بالكامل **دون إنترنت** لبوابات الدفع والتوصيل في الجزائر (**Chargily Pay v2**، **SATIM**، **Yalidine**، و **BaridiMob** للخدمات البنكية لبريد الجزائر) لتمكين المطورين من اختبار مسارات النجاح وسيناريوهات الأعطال الحقيقية محلياً دون الحاجة إلى حسابات تجارية، أو بطاقات حقيقية، أو اتصال بالإنترنت.
 
 </div>
 
@@ -28,7 +28,7 @@
 <!-- TODO: تسجيل وإضافة docs/assets/demo.gif (راجع docs/DEMO_SCRIPT.md) -->
 
 > ### إخلاء مسؤولية
-> **مشروع غير رسمي.** ليس تابعاً لشركات Chargily أو SATIM أو Yalidine. السلوك يحاكي المنطق البرمجي وقد يختلف عن بيئة الإنتاج الحقيقية. احرص دائماً على الاختبار ضد بيئات الاختبار الرسمية قبل الإطلاق النهائي. راجع [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md) لتفاصيل ما تم التحقق منه وما زال قيد المحاكاة.
+> **مشروع غير رسمي.** ليس تابعاً لشركات Chargily أو SATIM أو Yalidine أو BaridiMob (بريد الجزائر). السلوك يحاكي المنطق البرمجي وقد يختلف عن بيئة الإنتاج الحقيقية. احرص دائماً على الاختبار ضد بيئات الاختبار الرسمية قبل الإطلاق النهائي. راجع [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md) لتفاصيل ما تم التحقق منه وما زال قيد المحاكاة.
 
 ---
 
@@ -124,6 +124,20 @@ client.scenario("chargily", "duplicate_webhook")
 hooks = client.wait_for_webhook(provider="chargily", count=2)
 ```
 
+<div dir="rtl">
+
+أو لمشاريع PHP و Laravel و Pest؟ يتوفر عميل فوري دون أي تبعيات خارجية (`packages/php-client`):
+</div>
+
+```php
+use DzSandbox\SandboxClient;
+
+$client = new SandboxClient("http://127.0.0.1:4000");
+$client->reset();
+$client->scenario("chargily", "duplicate_webhook");
+$hooks = $client->waitForWebhook(provider: "chargily", count: 2);
+```
+
 ---
 
 <div dir="rtl">
@@ -158,6 +172,7 @@ hooks = client.wait_for_webhook(provider="chargily", count=2)
 | **Chargily Pay v2** | `@dz-sandbox/mock-chargily` | **مؤكد / جزئي** | دورة حياة العملاء والمنتجات والدفع وتوقيع HMAC-SHA256 مؤكدة مع الحزمة الرسمية `@chargily/chargily-pay@2.1.0`. صيغة الرسوم وبعض أخطاء 4xx تحت المحاكاة | [chargily.spec.ts](./packages/mock-chargily/src/chargily.spec.ts) |
 | **SATIM للدفع** | `@dz-sandbox/mock-satim` | **غير مؤكد (محاكاة)** | تسجيل العملية، صفحة البطاقات الوهمية (`4000000000000001`..`05`)، التأكيد والاسترجاع. المسارات الدقيقة للبنوك تتطلب الكتيب التقني الرسمي | [satim.spec.ts](./packages/mock-satim/src/satim.spec.ts) |
 | **Yalidine للتوصيل** | `@dz-sandbox/mock-yalidine` | **جزئي / غير مؤكد** | 69 ولاية و1,541 بلدية مستوردة من الجريدة الرسمية. إنشاء وتحديث الطرود وحساب الرسوم تحت المحاكاة؛ بانتظار عينات حقيقية | [yalidine.spec.ts](./packages/mock-yalidine/src/yalidine.spec.ts) |
+| **BaridiMob بريدي موب** | `@dz-sandbox/mock-baridimob` | **محاكاة / Mock** | محاكاة خدمات بريد الجزائر: تسجيل الدخول، تأكيد الهاتف OTP، الحسابات والبطاقات الذهبية، تحويلات RIP، ودفع الفواتير | [baridimob.spec.ts](./packages/mock-baridimob/src/baridimob.spec.ts) |
 | **ZR Express** | `@dz-sandbox/mock-zrexpress` | **هيكل أولي** | الحزمة جاهزة وترجع `501 NOT_IMPLEMENTED_AWAITING_SPEC` حتى تتوفر وثائق رسمية أو عينات مسجلة ومنقحة | [zrexpress.spec.ts](./packages/mock-zrexpress/src/zrexpress.spec.ts) |
 | **Maystro Delivery** | `@dz-sandbox/mock-maystro` | **هيكل أولي** | الحزمة جاهزة وترجع `501 NOT_IMPLEMENTED_AWAITING_SPEC` حتى تتوفر وثائق رسمية أو عينات مسجلة ومنقحة | [maystro.spec.ts](./packages/mock-maystro/src/maystro.spec.ts) |
 
@@ -171,7 +186,7 @@ hooks = client.wait_for_webhook(provider="chargily", count=2)
 
 <div dir="rtl">
 
-## سيناريوهات الأعطال المدمجة (27 سيناريو)
+## سيناريوهات الأعطال المدمجة (33 سيناريو)
 
 يمكن التبديل الفوري بين السيناريوهات عبر الترويسة (`X-DZ-Scenario: <name>`) أو لوحة التحكم أو سطر الأوامر أو عميل الاختبار:
 </div>
@@ -179,6 +194,7 @@ hooks = client.wait_for_webhook(provider="chargily", count=2)
 | التصنيف | أمثلة | الغرض |
 | --- | --- | --- |
 | **أعطال الدفع** | `declined`, `insufficient_funds`, `expired_card`, `invalid_card`, `amount_mismatch` | اختبار معالجة الواجهة لرفض البطاقات، ونقص الرصيد، واختلاف العملة |
+| **الخدمات البنكية والتطبيقات** | `otp_timeout`, `rip_invalid`, `transfer_limit_exceeded` | اختبار انتهاء صلاحية رمز الرسالة النصية OTP، وعدم صحة مفتاح RIP، وتجاوز الحد الأقصى للتحويل |
 | **الشبكة والبوابة** | `timeout`, `network_drop`, `gateway_500`, `rate_limited` | اختبار مرونة النظام في حالات الانقطاع، والبطء، وتجاوز حدود الطلبات (`429`) |
 | **إشعارات الـ Webhooks** | `duplicate_webhook`, `delayed_webhook`, `out_of_order_webhooks`, `webhook_bad_signature`, `webhook_never_sent` | اختبار معالجة الطلبات المتكررة، والتأكد من رفض التوقيعات المزورة |
 | **دورة حياة التوصيل** | `lifecycle_fast`, `status_stuck`, `delivery_failed`, `returned_to_sender`, `phone_rejected`, `invalid_wilaya` | اختبار إشعارات التتبع، وتوقف الطرود، والتحقق من صحة الولاية والبلدية ورقم الهاتف |
@@ -199,7 +215,8 @@ hooks = client.wait_for_webhook(provider="chargily", count=2)
 
 لوحة التحكم متاحة محلياً عبر `http://127.0.0.1:4000`:
 - **عربية بالكامل (RTL افتراضياً):** تبديل سلس وفوري بين العربية والفرنسية والإنجليزية.
-- **مصفوفة السيناريوهات:** فحص التغطية التجريبية لجميع السيناريوهات الـ 27 لكل مزود.
+- **بث مباشر تلقائي (Live Stream):** تحديث لحظي للطلبات والـ Webhooks بدون الحاجة لإعادة تحميل الصفحة.
+- **مصفوفة السيناريوهات:** فحص التغطية التجريبية لجميع السيناريوهات الـ 33 لكل مزود.
 - **مفتش الطلبات وإشعارات الـ Webhooks:** مراقبة فورية للترويسات والبيانات مع إخفاء المفاتيح الحساسة.
 - **معاينة الدفع المستضاف:** إتمام عمليات الدفع الوهمية مباشرة من خلال إطار مضمن (iframe).
 

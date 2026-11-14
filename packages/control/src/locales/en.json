@@ -3,8 +3,10 @@
   "dir": "ltr",
   "brand": "dz-sandbox",
   "tagline": "Test what fails, not just what succeeds",
-  "disclaimer": "Unofficial. Not affiliated with Chargily, SATIM, or Yalidine. Behavior is simulated.",
+  "disclaimer": "Unofficial. Not affiliated with Chargily, SATIM, Yalidine, or BaridiMob (Algérie Poste). Behavior is simulated.",
   "themeToggle": "Toggle Theme",
+  "liveStream": "Live Stream",
+  "liveStreamActive": "🔴 Live (2.5s)",
   "resetBtn": "Reset All",
   "tabs": {
     "overview": "Overview",

@@ -84,6 +84,8 @@ export function renderDashboardHtml(): string {
     }
     .btn-accent { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
     .btn-danger { background: #b91c1c; color: #ffffff; border-color: transparent; }
+    .btn-live { border-color: var(--border); transition: all 0.2s ease; }
+    .btn-live.is-active { background: #064e3b; border-color: var(--accent); color: #34d49a; box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
     .nav {
       display: flex;
       gap: 6px;
@@ -164,6 +166,7 @@ export function renderDashboardHtml(): string {
         <option value="en">English</option>
       </select>
       <button class="btn" id="theme-btn" type="button"></button>
+      <button class="btn btn-live" id="live-btn" type="button" aria-pressed="false"></button>
       <button class="btn btn-danger" id="reset-btn" type="button"></button>
     </div>
   </header>
@@ -199,6 +202,8 @@ export function renderDashboardHtml(): string {
     let lastRequests = [];
     let lastWebhooks = [];
     let reqFilter = '';
+    let isLive = false;
+    let liveInterval = null;
 
     function t(path) {
       const parts = path.split('.');
@@ -211,6 +216,19 @@ export function renderDashboardHtml(): string {
       return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    function updateLiveButton() {
+      const btn = document.getElementById('live-btn');
+      if (!btn) return;
+      btn.setAttribute('aria-pressed', String(isLive));
+      if (isLive) {
+        btn.textContent = t('liveStreamActive');
+        btn.classList.add('is-active');
+      } else {
+        btn.textContent = t('liveStream');
+        btn.classList.remove('is-active');
+      }
+    }
+
     function applyLocaleChrome() {
       const loc = LOCALES[lang] || LOCALES.ar;
       document.documentElement.lang = loc.lang;
@@ -220,6 +238,7 @@ export function renderDashboardHtml(): string {
       document.getElementById('theme-btn').textContent = loc.themeToggle;
       document.getElementById('reset-btn').textContent = loc.resetBtn;
       document.getElementById('disclaimer-footer').textContent = loc.disclaimer;
+      updateLiveButton();
       document.querySelectorAll('[role="tab"]').forEach((btn) => {
         const key = btn.getAttribute('data-tab');
         btn.textContent = loc.tabs[key] || key;
@@ -555,6 +574,17 @@ export function renderDashboardHtml(): string {
     document.getElementById('theme-btn').addEventListener('click', () => {
       const cur = document.documentElement.getAttribute('data-theme');
       document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+    });
+    document.getElementById('live-btn').addEventListener('click', () => {
+      isLive = !isLive;
+      updateLiveButton();
+      if (isLive) {
+        void refreshAll();
+        liveInterval = setInterval(() => { void refreshAll(); }, 2500);
+      } else {
+        if (liveInterval) clearInterval(liveInterval);
+        liveInterval = null;
+      }
     });
     document.getElementById('reset-btn').addEventListener('click', async () => {
       await api('/__control/reset', { method: 'POST' });

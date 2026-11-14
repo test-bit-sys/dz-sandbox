@@ -3,8 +3,10 @@
   "dir": "ltr",
   "brand": "dz-sandbox",
   "tagline": "Testez ce qui échoue, pas seulement ce qui réussit",
-  "disclaimer": "Non officiel. Non affilié à Chargily, SATIM ou Yalidine. Comportement simulé.",
+  "disclaimer": "Non officiel. Non affilié à Chargily, SATIM, Yalidine ou BaridiMob (Algérie Poste). Comportement simulé.",
   "themeToggle": "Changer de thème",
+  "liveStream": "Flux direct",
+  "liveStreamActive": "🔴 En direct (2.5s)",
   "resetBtn": "Tout réinitialiser",
   "tabs": {
     "overview": "Aperçu",

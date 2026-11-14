@@ -6,7 +6,7 @@
 
 **Testez ce qui échoue, pas seulement ce qui réussit.**
 
-Un simulateur local déterministe et 100% hors ligne reproduisant les APIs de paiement et de livraison algériennes (**Chargily Pay v2**, **SATIM**, et **Yalidine**) pour permettre aux développeurs d'intégrer et de tester les parcours nominaux *et* les scénarios d'échec réels, sans compte marchand, sans identifiants réels et sans connexion Internet.
+Un simulateur local déterministe et 100% hors ligne reproduisant les APIs de paiement et de livraison algériennes (**Chargily Pay v2**, **SATIM**, **Yalidine**, et **BaridiMob** mobile banking) pour permettre aux développeurs d'intégrer et de tester les parcours nominaux *et* les scénarios d'échec réels, sans compte marchand, sans identifiants réels et sans connexion Internet.
 
 [![CI](https://github.com/test-bit-sys/dz-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/test-bit-sys/dz-sandbox/actions/workflows/ci.yml)
 [![Documentation](https://img.shields.io/badge/docs-site%20en%20ligne-brightgreen.svg)](https://test-bit-sys.github.io/dz-sandbox/)
@@ -20,7 +20,7 @@ Un simulateur local déterministe et 100% hors ligne reproduisant les APIs de pa
 <!-- TODO: Enregistrer et ajouter docs/assets/demo.gif (voir docs/DEMO_SCRIPT.md) -->
 
 > ### Avertissement
-> **Non officiel.** Non affilié à Chargily, SATIM ou Yalidine. Le comportement est simulé et peut différer de la production. Testez toujours contre le bac à sable officiel avant la mise en production. Consultez [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md) pour le périmètre vérifié versus non vérifié.
+> **Non officiel.** Non affilié à Chargily, SATIM, Yalidine ou BaridiMob (Algérie Poste). Le comportement est simulé et peut différer de la production. Testez toujours contre le bac à sable officiel avant la mise en production. Consultez [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md) pour le périmètre vérifié versus non vérifié.
 
 ---
 
@@ -98,6 +98,17 @@ client.scenario("chargily", "duplicate_webhook")
 hooks = client.wait_for_webhook(provider="chargily", count=2)
 ```
 
+Client PHP / Laravel / Pest inclus sans dépendance externe (`packages/php-client`) :
+
+```php
+use DzSandbox\SandboxClient;
+
+$client = new SandboxClient("http://127.0.0.1:4000");
+$client->reset();
+$client->scenario("chargily", "duplicate_webhook");
+$hooks = $client->waitForWebhook(provider: "chargily", count: 2);
+```
+
 ---
 
 ## Pourquoi dz-sandbox ?
@@ -125,6 +136,7 @@ Chaque endpoint dans `dz-sandbox` est audité contre la documentation officielle
 | **Chargily Pay v2** | `@dz-sandbox/mock-chargily` | **Vérifié / Partiel** | Clients, produits, prix, checkouts et signature HMAC-SHA256 vérifiés avec `@chargily/chargily-pay@2.1.0`. Calcul des frais et certaines erreurs 4xx simulés | [chargily.spec.ts](./packages/mock-chargily/src/chargily.spec.ts) |
 | **SATIM E-Payment** | `@dz-sandbox/mock-satim` | **Non vérifié (Simulé)** | Enregistrement (`register.do`), fausses cartes (`4000000000000001`..`05`), confirmation et remboursements simulés. Les codes bancaires précis nécessitent le guide technique officiel | [satim.spec.ts](./packages/mock-satim/src/satim.spec.ts) |
 | **Yalidine Express** | `@dz-sandbox/mock-yalidine` | **Partiel / Non vérifié** | 69 wilayas et 1 541 communes (AR/FR/EN, coordonnées exclues) importés du journal officiel. CRUD colis, frais et historiques simulés ; enveloppes de réponse en attente de captures réelles | [yalidine.spec.ts](./packages/mock-yalidine/src/yalidine.spec.ts) |
+| **BaridiMob Banking** | `@dz-sandbox/mock-baridimob` | **Simulé / Mock** | Algérie Poste mobile banking : connexion, confirmation OTP SMS, virements RIP à RIP, comptes, cartes et factures | [baridimob.spec.ts](./packages/mock-baridimob/src/baridimob.spec.ts) |
 | **ZR Express** | `@dz-sandbox/mock-zrexpress` | **Squelette (Non vérifié)** | Squelette de package et middleware prêts ; renvoie `501 NOT_IMPLEMENTED_AWAITING_SPEC` jusqu'à réception de spécifications officielles ou de captures nettoyées | [zrexpress.spec.ts](./packages/mock-zrexpress/src/zrexpress.spec.ts) |
 | **Maystro Delivery** | `@dz-sandbox/mock-maystro` | **Squelette (Non vérifié)** | Squelette de package et middleware prêts ; renvoie `501 NOT_IMPLEMENTED_AWAITING_SPEC` jusqu'à réception de spécifications officielles ou de captures nettoyées | [maystro.spec.ts](./packages/mock-maystro/src/maystro.spec.ts) |
 
@@ -132,13 +144,14 @@ Registre complet : [docs/SPEC_STATUS.md](./docs/SPEC_STATUS.md)
 
 ---
 
-## Scénarios de panne intégrés (27 scénarios)
+## Scénarios de panne intégrés (33 scénarios)
 
 Basculez de scénario via en-tête HTTP (`X-DZ-Scenario: <nom>`), le dashboard, le CLI ou le client de test :
 
 | Catégorie | Exemples | Objectif |
 | --- | --- | --- |
 | **Pannes de paiement** | `declined`, `insufficient_funds`, `expired_card`, `invalid_card`, `amount_mismatch` | Vérifier que l'interface gère les rejets de carte et les incohérences de montant |
+| **Mobile Banking** | `otp_timeout`, `rip_invalid`, `transfer_limit_exceeded` | Tester l'expiration du SMS OTP, les RIPs destinataires invalides et le plafond de virement |
 | **Réseau & Passerelle** | `timeout`, `network_drop`, `gateway_500`, `rate_limited` | Vérifier la résistance aux lenteurs, déconnexions et limites de débit (`429`) |
 | **Webhooks** | `duplicate_webhook`, `delayed_webhook`, `out_of_order_webhooks`, `webhook_bad_signature`, `webhook_never_sent` | Tester l'idempotence des commandes et le rejet des signatures falsifiées |
 | **Livraison** | `lifecycle_fast`, `status_stuck`, `delivery_failed`, `returned_to_sender`, `phone_rejected`, `invalid_wilaya` | Tester les webhooks de suivi, les rejets de wilaya/commune et les retours au centre |
@@ -153,14 +166,15 @@ Catalogue complet des scénarios : [docs/scenarios.md](./docs/scenarios.md)
 
 Le dashboard est servi sur `http://127.0.0.1:4000` :
 - **Arabe RTL par défaut :** Bascule instantanée Arabe, Français, Anglais.
-- **Matrice des scénarios :** Visualisation de la couverture de test sur les 27 scénarios.
+- **Flux direct en temps réel (Live Stream) :** Rafraîchissement automatique (2.5s) pour visualiser requêtes et webhooks sans recharger la page.
+- **Matrice des scénarios :** Visualisation de la couverture de test sur les 33 scénarios.
 - **Inspecteur de requêtes & webhooks :** Affichage avec masquage automatique des secrets.
 - **Aperçu des paiements hébergés :** Validation manuelle des checkouts dans un iframe local.
 
 ### Commandes CLI
 
 ```bash
-npx dz-sandbox doctor                         # Diagnostic Node, ports 4000-4003 et génération .env
+npx dz-sandbox doctor                         # Diagnostic Node, ports 4000-4004 et génération .env
 npx dz-sandbox start                          # Démarrage des serveurs mocks et du dashboard
 npx dz-sandbox stop                           # Arrêt du démon
 npx dz-sandbox status                         # État de santé et scénarios actifs
