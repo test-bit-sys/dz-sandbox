@@ -9,7 +9,7 @@
     "demo": "node demo.mjs"
   },
   "devDependencies": {
-    "typescript": "^5.8.2"
+    "typescript": "^7.0.2"
   },
   "peerDependencies": {
     "next": ">=15.0.0",
